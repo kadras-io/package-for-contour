@@ -1,0 +1,13 @@
+apiVersion: vendir.k14s.io/v1alpha1
+directories:
+- contents:
+  - git:
+      ref: v1.23.0
+      url: https://github.com/projectcontour/contour
+    includePaths:
+    - examples/render/contour.yaml
+    newRootPath: examples/render
+    path: .
+  path: config/upstream
+kind: Config
+minimumRequiredVersion: ""
