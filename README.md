@@ -142,7 +142,7 @@ envoy:
 
 ## Documentation
 
-For documentation specific to Contour, check out [https://argoproj.github.io/cd](https://argoproj.github.io/cd).
+For documentation specific to Contour, check out [projectcontour.io](https://projectcontour.io).
 
 ## References
 
