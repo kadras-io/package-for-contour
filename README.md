@@ -40,7 +40,7 @@ Either way, you can then install the Contour package using [`kctrl`](https://car
 ```shell
 kctrl package install -i contour \
     -p contour.packages.kadras.io \
-    -v 1.23.0 \
+    -v 1.23.0-kadras.1 \
     -n carvel-packages
 ```
 
@@ -91,8 +91,8 @@ You can define your configuration in a `values.yml` file.
 namespace: projectcontour
 
 envoy:
-    service:
-        type: ClusterIP
+  service:
+    type: ClusterIP
 ```
 
 Then, reference it from the `kctrl` command when installing or upgrading the package.
@@ -100,7 +100,7 @@ Then, reference it from the `kctrl` command when installing or upgrading the pac
 ```shell
 kctrl package install -i contour \
     -p contour.packages.kadras.io \
-    -v 1.23.0 \
+    -v 1.23.0-kadras.1 \
     -n carvel-packages \
     --values-file values.yml
 ```

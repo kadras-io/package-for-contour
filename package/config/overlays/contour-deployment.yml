@@ -2,7 +2,6 @@
 #@ load("@ytt:data", "data")
 #@ load("/contour.star", "get_contour_deployment_args")
 
-
 #@overlay/match by=overlay.subset({"kind": "Deployment", "metadata": {"name": "contour"}})
 ---
 spec:

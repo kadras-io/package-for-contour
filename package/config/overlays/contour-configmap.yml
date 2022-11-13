@@ -2,7 +2,6 @@
 #@ load("@ytt:data", "data")
 #@ load("@ytt:yaml", "yaml")
 
-
 #@overlay/match by=overlay.subset({"kind": "ConfigMap"})
 ---
 data:
