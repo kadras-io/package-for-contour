@@ -1,6 +1,5 @@
 #@data/values-schema
 
-#@schema/desc "OpenAPIv3 Schema"
 ---
 #@schema/desc "The underlying infrastructure provider. Options are aws, azure, docker and vsphere. This field is not required, but enables better validation and defaulting if provided."
 infrastructureProvider: ""
@@ -36,6 +35,8 @@ envoy:
   #@schema/desc "Envoy service settings."
   service:
     #@schema/desc "The type of Kubernetes service to provision for Envoy. If not specified, will default to 'NodePort' for docker and vsphere and 'LoadBalancer' for others."
+    #@schema/validation one_of=["NodePort", "ClusterIP", "LoadBalancer"]
+    #@schema/nullable
     type: ""
 
     #@schema/desc "The desired load balancer IP. If type is not 'LoadBalancer', this field is ignored. It is up to the cloud provider whether to honor this request. If not specified, then load balancer IP will be assigned by the cloud provider."
