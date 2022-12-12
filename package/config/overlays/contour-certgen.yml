@@ -1,6 +1,6 @@
+#@ load("@ytt:data", "data")
 #@ load("@ytt:overlay", "overlay")
 #@ load("@ytt:regexp", "regexp")
-#@ load("@ytt:data", "data")
 
 #@ def regex_match(x, l, r):
 #@ if not ("metadata" in l and "name" in l["metadata"]):
