@@ -23,7 +23,7 @@ spec:
           - kbld: {}
       export:
       - imgpkgBundle:
-          image: ghcr.io/arktonix/package-for-contour
+          image: ghcr.io/kadras-io/package-for-contour
           useKbldImagesLock: true
         includePaths:
         - config
