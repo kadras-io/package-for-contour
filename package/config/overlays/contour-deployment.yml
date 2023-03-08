@@ -1,15 +1,25 @@
-#@ load("@ytt:overlay", "overlay")
 #@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
 #@ load("/contour.star", "get_contour_deployment_args")
 
-#@overlay/match by=overlay.subset({"kind": "Deployment", "metadata": {"name": "contour"}})
+#! Resource requests and limits for Contour can vary a lot depending on the scenario.
+#! Reasonable resource requests are configured as a starting point.
+#! See: https://projectcontour.io/docs/latest/deploy-options/#setting-resource-requests-and-limits
+#! See: https://projectcontour.io/docs/latest/guides/resource-limits/
+
+#@overlay/match by=overlay.subset({"kind":"Deployment", "metadata":{"name":"contour"}}), expects=1
 ---
 spec:
   replicas: #@ data.values.contour.replicas
   template:
     spec:
       containers:
-      #@overlay/match by=overlay.subset({"name": "contour"})
-      -
+      #@overlay/match by="name", expects=1
+      - name: contour
         #@overlay/replace
         args: #@ get_contour_deployment_args()
+        #@overlay/match missing_ok=True
+        resources:
+          requests:
+            cpu: "100m" #! Recommended: 250m
+            memory: "128Mi"

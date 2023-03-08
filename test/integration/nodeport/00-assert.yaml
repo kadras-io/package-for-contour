@@ -1,0 +1,100 @@
+# Contour Certgen
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: projectcontour
+  annotations:
+    kapp.k14s.io/update-strategy: fallback-on-replace
+
+# Contour ConfigMap
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: contour
+  namespace: projectcontour
+data:
+  contour.yaml: |
+    disablePermitInsecure: false
+    tls:
+      fallback-certificate: null
+      envoy-client-certificate: null
+    accesslog-format: envoy
+
+# Contour Deployment
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: contour
+  namespace: projectcontour
+spec:
+  replicas: 1
+status:
+  readyReplicas: 1
+
+# Envoy Service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: envoy
+  namespace: projectcontour
+spec:
+  externalTrafficPolicy: Local
+  ports:
+  - port: 80
+    name: http
+    protocol: TCP
+    targetPort: http
+    nodePort: 30080
+  - port: 443
+    name: https
+    protocol: TCP
+    targetPort: https
+    nodePort: 30443
+  selector:
+    app: envoy
+  type: NodePort
+
+# Envoy Daemonset
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: envoy
+  namespace: projectcontour
+
+# Image Pull Secret
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: canonical-registry-credentials
+  namespace: projectcontour
+  annotations:
+    secretgen.carvel.dev/image-pull-secret: ""
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: e30K
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: projectcontour
+spec:
+  template:
+    spec:
+      imagePullSecrets:
+        - name: canonical-registry-credentials
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  namespace: projectcontour
+spec:
+  template:
+    spec:
+      imagePullSecrets:
+        - name: canonical-registry-credentials

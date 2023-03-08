@@ -1,0 +1,108 @@
+#@ load("@ytt:data", "data")
+
+#@ contour_ca_issuer = "contour-ca-issuer"
+
+#@ def generate_dns_names(name, namespace):
+#@   full_name = name + "." + namespace
+#@   svc_name = full_name + ".svc"
+#@   svc_cluster_local_name = svc_name + ".cluster.local"
+#@   return [name, full_name, svc_name, svc_cluster_local_name]
+#@ end
+
+#@ if data.values.certificates.useCertManager:
+
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: contour-bootstrap-issuer
+  namespace: #@ data.values.namespace
+spec:
+  selfSigned: {}
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: contour-root-ca
+  namespace: #@ data.values.namespace
+spec:
+  isCA: true
+  commonName: Contour CA
+  secretName: contour-root-ca
+  duration: 8760h #! 365 days
+  renewBefore: 360h #! 15 days
+  subject:
+    organizations:
+    - Project Contour
+  privateKey:
+    algorithm: Ed25519
+    encoding: PKCS8
+  issuerRef:
+    name: contour-bootstrap-issuer
+    kind: Issuer
+    group: cert-manager.io
+
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: #@ contour_ca_issuer
+  namespace: #@ data.values.namespace
+spec:
+  ca:
+    secretName: contour-root-ca
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: contour-cert
+  namespace: #@ data.values.namespace
+spec:
+  secretName: contourcert
+  duration: #@ data.values.certificates.duration
+  renewBefore: #@ data.values.certificates.renewBefore
+  subject:
+    organizations:
+    - Project Contour
+  commonName: contour
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 4096
+  usages:
+  - server auth
+  dnsNames: #@ generate_dns_names("contour", data.values.namespace)
+  issuerRef:
+    name: #@ contour_ca_issuer
+    kind: Issuer
+    group: cert-manager.io
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: envoy-cert
+  namespace: #@ data.values.namespace
+spec:
+  secretName: envoycert
+  duration: #@ data.values.certificates.duration
+  renewBefore: #@ data.values.certificates.renewBefore
+  subject:
+    organizations:
+    - Project Contour
+  commonName: envoy
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 4096
+  usages:
+  - client auth
+  dnsNames: #@ generate_dns_names("envoy", data.values.namespace)
+  issuerRef:
+    name: #@ contour_ca_issuer
+    kind: Issuer
+    group: cert-manager.io
+
+#@ end

@@ -1,0 +1,31 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
+
+#! Resource requests and limits for Envoy can vary a lot depending on the scenario.
+#! Reasonable resource requests are configured as a starting point.
+#! See: https://projectcontour.io/docs/latest/deploy-options/#setting-resource-requests-and-limits
+#! See: https://projectcontour.io/docs/latest/guides/resource-limits/
+
+#@ daemonset = overlay.subset({"kind":"DaemonSet", "metadata":{"name":"envoy"}})
+#@ deployment = overlay.subset({"kind":"Deployment", "metadata":{"name":"envoy"}})
+
+#@overlay/match by=overlay.or_op(daemonset, deployment), expects=1
+---
+spec:
+  template:
+    spec:
+      containers:
+      #@overlay/match by="name", expects=1
+      - name: envoy
+        #@overlay/match missing_ok=True
+        resources:
+          requests:
+            cpu: "100m" #! Recommended: 500m
+            memory: "256Mi"
+      #@overlay/match by="name", expects=1
+      - name: shutdown-manager
+        #@overlay/match missing_ok=True
+        resources:
+          requests:
+            cpu: "25m"
+            memory: "50Mi"
