@@ -2,7 +2,24 @@
 #@ load("@ytt:overlay", "overlay")
 #@ load("@ytt:yaml", "yaml")
 
-#@overlay/match by=overlay.subset({"kind": "ConfigMap"})
+#! 1. Decode/parse the contents of the `contour.yaml` key within the ConfigMap.
+#! 2. Overlay the decoded/parsed YAML with the custom configuration.
+#! 3. Re-encode the overlayed result to a string.
+
+#@overlay/match by=overlay.subset({"kind":"ConfigMap","metadata":{"name":"contour"}}), expects=1
 ---
 data:
-  contour.yaml: #@ yaml.encode(data.values.contour.configFileContents)
+  #@overlay/replace via=lambda left, _: yaml.decode(left)
+  contour.yaml:
+
+#@overlay/match by=overlay.subset({"kind":"ConfigMap","metadata":{"name":"contour"}}), expects=1
+---
+data:
+  #@overlay/match-child-defaults missing_ok=True
+  contour.yaml: #@ data.values.contour.configFileContents
+
+#@overlay/match by=overlay.subset({"kind":"ConfigMap","metadata":{"name":"contour"}}), expects=1
+---
+data:
+  #@overlay/replace via=lambda left, _: yaml.encode(left)
+  contour.yaml:

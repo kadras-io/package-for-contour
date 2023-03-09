@@ -1,10 +1,16 @@
 # Contour
 
-<a href="https://slsa.dev/spec/v0.1/levels"><img src="https://slsa.dev/images/gh-badge-level3.svg" alt="The SLSA Level 3 badge"></a>
+![Test Workflow](https://github.com/kadras-io/package-for-contour/actions/workflows/test.yml/badge.svg)
+![Release Workflow](https://github.com/kadras-io/package-for-contour/actions/workflows/release.yml/badge.svg)
+[![The SLSA Level 3 badge](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev/spec/v0.1/levels)
+[![The Apache 2.0 license badge](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Follow us on Twitter](https://img.shields.io/static/v1?label=Twitter&message=Follow&color=1DA1F2)](https://twitter.com/kadrasIO)
 
-This project provides a [Carvel package](https://carvel.dev/kapp-controller/docs/latest/packaging) for [Contour](https://github.com/projectcontour/contour), an Envoy-based ingress controller.
+A Carvel package for [Contour](https://projectcontour.io), a high performance ingress controller for Kubernetes based on Envoy.
 
-## Prerequisites
+## 🚀&nbsp; Getting Started
+
+### Prerequisites
 
 * Kubernetes 1.24+
 * Carvel [`kctrl`](https://carvel.dev/kapp-controller/docs/latest/install/#installing-kapp-controller-cli-kctrl) CLI.
@@ -12,75 +18,61 @@ This project provides a [Carvel package](https://carvel.dev/kapp-controller/docs
 
   ```shell
   kapp deploy -a kapp-controller -y \
-    -f https://github.com/vmware-tanzu/carvel-kapp-controller/releases/latest/download/release.yml
+    -f https://github.com/carvel-dev/kapp-controller/releases/latest/download/release.yml
   ```
 
-## Installation
+### Installation
 
-First, add the [Kadras package repository](https://github.com/kadras-io/kadras-packages) to your Kubernetes cluster.
+Add the Kadras [package repository](https://github.com/kadras-io/kadras-packages) to your Kubernetes cluster:
 
   ```shell
   kubectl create namespace kadras-packages
-  kctrl package repository add -r kadras-repo \
+  kctrl package repository add -r kadras-packages \
     --url ghcr.io/kadras-io/kadras-packages \
     -n kadras-packages
   ```
 
-Then, install the Contour package.
+<details><summary>Installation without package repository</summary>
+The recommended way of installing the Contour package is via the Kadras <a href="https://github.com/kadras-io/kadras-packages">package repository</a>. If you prefer not using the repository, you can add the package definition directly using <a href="https://carvel.dev/kapp/docs/latest/install"><code>kapp</code></a> or <code>kubectl</code>.
+
+  ```shell
+  kubectl create namespace kadras-packages
+  kapp deploy -a contour-package -n kadras-packages -y \
+    -f https://github.com/kadras-io/package-for-contour/releases/latest/download/metadata.yml \
+    -f https://github.com/kadras-io/package-for-contour/releases/latest/download/package.yml
+  ```
+</details>
+
+Install the Contour package:
 
   ```shell
   kctrl package install -i contour \
     -p contour.packages.kadras.io \
-    -v 1.23.2+kadras.1 \
+    -v ${VERSION} \
     -n kadras-packages
   ```
 
-### Verification
+> **Note**
+> You can find the `${VERSION}` value by retrieving the list of package versions available in the Kadras package repository installed on your cluster.
+> 
+>   ```shell
+>   kctrl package available list -p contour.packages.kadras.io -n kadras-packages
+>   ```
 
-You can verify the list of installed Carvel packages and their status.
+Verify the installed packages and their status:
 
   ```shell
   kctrl package installed list -n kadras-packages
   ```
 
-### Version
+## 📙&nbsp; Documentation
 
-You can get the list of Contour versions available in the Kadras package repository.
+Documentation, tutorials and examples for this package are available in the [docs](docs) folder.
+For documentation specific to Contour, check out [projectcontour.io](https://projectcontour.io).
 
-  ```shell
-  kctrl package available list -p contour.packages.kadras.io -n kadras-packages
-  ```
+## 🎯&nbsp; Configuration
 
-## Configuration
-
-The Contour package has the following configurable properties.
-
-| Config | Default | Description |
-|--------|---------|-------------|
-| `infrastructureProvider` | (none) | The underlying infrastructure provider. Optional, used for validating & defaulting other configuration values on specific platforms. Valid values are `aws`, `azure`, `docker` and `vsphere`. |
-| `namespace` | `projectcontour` | The namespace in which to deploy Contour and Envoy. |
-| `contour.configFileContents` | (none) | The YAML contents of the Contour config file. See [the Contour configuration documentation](https://projectcontour.io/docs/latest/configuration/#configuration-file) for more information. |
-| `contour.replicas` | `2` | How many Contour pod replicas to have. |
-| `contour.useProxyProtocol` | `false` | Whether to enable PROXY protocol for all Envoy listeners. |
-| `contour.logLevel` | `info` | The Contour log level. Valid values are `info` and `debug`. |
-| `envoy.service.type` | `NodePort` for docker and vsphere; `LoadBalancer` for others | The type of Kubernetes service to provision for Envoy. Valid values are `LoadBalancer`, `NodePort`, and `ClusterIP`. |
-| `envoy.service.externalTrafficPolicy` | `Cluster` for vsphere; `Local` for others | The external traffic policy for the Envoy service. Valid values are `Local` and `Cluster`.  If `envoy.service.type` is `ClusterIP`, this field is ignored. |
-| `envoy.service.loadBalancerIP` | (none) | The desired load balancer IP for the Envoy service. If `envoy.service.type` is not `LoadBalancer`, this field is ignored. |
-| `envoy.service.annotations` | (none) | Annotations to set on the Envoy service. |
-| `envoy.service.nodePorts.http` | (none) | If `envoy.service.type` == `NodePort` or `LoadBalancer`, the node port number to expose Envoy's HTTP listener on. If not specified, a node port will be auto-assigned by Kubernetes. |
-| `envoy.service.nodePorts.https` | (none) | If `envoy.service.type` == `NodePort` or `LoadBalancer`, the node port number to expose Envoy's HTTPS listener on. If not specified, a node port will be auto-assigned by Kubernetes. |
-| `envoy.service.aws.loadBalancerType` | (none) | If `infrastructureProvider` == `aws`, the type of AWS load balancer to provision. Valid values are `classic` and `nlb`. If `infrastructureProvider` is not `aws`, this field is ignored. |
-| `envoy.hostPorts.enable` | `false` | Whether to enable host ports for the Envoy pods. If false, `envoy.hostPorts.http` and `envoy.hostPorts.https` are ignored. |
-| `envoy.hostPorts.http` | `80` | If `envoy.hostPorts.enable` == true, the host port number to expose Envoy's HTTP listener on. |
-| `envoy.hostPorts.https` | `443` | If `envoy.hostPorts.enable` == true, the host port number to expose Envoy's HTTPS listener on. |
-| `envoy.hostNetwork` | `false` | Whether to enable host networking for the Envoy pods. |
-| `envoy.terminationGracePeriodSeconds` | `300` | The termination grace period, in seconds, for the Envoy pods. |
-| `envoy.logLevel` | `info` | The Envoy log level. Valid values are `trace`, `debug`, `info`, `warn`, `error`, `critical`, and `off`. |
-| `certificates.useCertManager` | `false` | Whether to use cert-manager to provision TLS certificates for securing communication between Contour and Envoy. If false, the upstream Contour certgen job will be used to provision certificates. If true, the `cert-manager` addon must be installed in the cluster. |
-| `certificates.duration` | `8760h` |  If using cert-manager, how long the certificates should be valid for. If useCertManager is false, this field is ignored. |
-| `certificates.renewBefore` | `360h` |  If using cert-manager, how long before expiration the certificates should be renewed. If useCertManager is false, this field is ignored. |
-
-You can define your configuration in a `values.yml` file.
+The Contour package can be customized via a `values.yml` file.
 
   ```yaml
   namespace: projectcontour
@@ -90,90 +82,75 @@ You can define your configuration in a `values.yml` file.
       type: ClusterIP
   ```
 
-Then, reference it from the `kctrl` command when installing or upgrading the package.
+Reference the `values.yml` file from the `kctrl` command when installing or upgrading the package.
 
   ```shell
   kctrl package install -i contour \
     -p contour.packages.kadras.io \
-    -v 1.23.2+kadras.1 \
+    -v ${VERSION} \
     -n kadras-packages \
     --values-file values.yml
   ```
 
-### Application configuration values
+### Values
 
-Within the data values file, the `contour.configFileContents` field may optionally contain YAML to put directly in the Contour config file.
-See [the Contour configuration documentation](https://projectcontour.io/docs/latest/configuration/#configuration-file) for full details on the available options.
+The Contour package has the following configurable properties.
 
-An example data values file that specifies this field looks like:
+<details><summary>Configurable properties</summary>
 
-  ```yaml
-  contour:
-    configFileContents:
-      accesslog-format: json
-  ```
+| Config | Default | Description |
+|--------|---------|-------------|
+| `infrastructureProvider` | `""` | The underlying infrastructure provider. Options are `aws`, `azure`, `local` and `vsphere`. This field is not required, but it enables better validation and defaulting if provided. |
+| `namespace` | `projectcontour` | The namespace in which to deploy Contour and Envoy. |
 
-#### Multi-cloud configuration steps
+Settings for the Contour component.
 
-If deploying Contour to **AWS**, you may optionally configure the package to provision a Network Load Balancer (NLB) instead of the default Classic Load Balancer by providing the following data values:
+| Config | Default | Description |
+|--------|---------|-------------|
+| `contour.replicas` | `2` | The number of Contour replicas. In order to enable high availability, it should be greater than 1. |
+| `contour.config.logFormat` | `text` | Log output format for Contour. Either `text` (default) or `json`. |
+| `contour.config.logLevel` | `info` | The Contour log level. Valid options are `info` and `debug`. |
+| `contour.config.useProxyProtocol` | `false` | Whether to enable PROXY protocol for all Envoy listeners. |
+| `contour.configFileContents` | `""` | The YAML contents of the Contour config file. See https://projectcontour.io/docs/latest/configuration/#configuration-file for more information. |
 
-  ```yaml
-  infrastructureProvider: aws
-  envoy:
-    service:
-      aws:
-        loadBalancerType: nlb
-  ```
+Settings for the Envoy component.
 
-You may specify platform-specific annotations to be added to the Envoy service by providing the following data values:
+| Config | Default | Description |
+|--------|---------|-------------|
+| `envoy.workload.type` | `DaemonSet` | The type of Kubernetes workload that Envoy is deployed as. Options are `Deployment` or `DaemonSet`. |
+| `envoy.workload.replicas` | `2` | The number of Envoy replicas to deploy when `type` is set to `Deployment`. |
+| `envoy.workload.hostPorts.enabled` | `false` | Whether to enable host ports. If false, http & https are ignored. |
+| `envoy.workload.hostPorts.http` | `80` | If enabled, the host port number to expose Envoy's HTTP listener on. |
+| `envoy.workload.hostPorts.https` | `443` | If enabled, the host port number to expose Envoy's HTTPS listener on. |
+| `envoy.workload.hostNetwork` | `false` | Whether to enable host networking for the Envoy pods. |
+| `envoy.workload.terminationGracePeriodSeconds` | `300` | The termination grace period, in seconds, for the Envoy pods. |
+| `envoy.config.logLevel` | `info` | The Envoy log level. |
+| `envoy.service.type` | `""` | The type of Kubernetes service to provision for Envoy. If not specified, it will default to `NodePort` for local and vsphere and `LoadBalancer` for others. |
+| `envoy.service.loadBalancerIP` | `""` | The desired load balancer IP. If `type` is not `LoadBalancer', this field is ignored. It is up to the cloud provider whether to honor this request. If not specified, then load balancer IP will be assigned by the cloud provider. |
+| `envoy.service.externalTrafficPolicy` | `""` | The external traffic policy for the Envoy service. If type is `ClusterIP`, this field is ignored. Otherwise, it defaults to `Cluster` for vsphere and `Local` for others. |
+| `envoy.service.annotations` | `false` | Annotations to set on the Envoy service. |
+| `envoy.service.nodePorts.http` | `false` | The node port number to expose Envoy's HTTP listener on. If not specified, a node port will be auto-assigned by Kubernetes. |
+| `envoy.service.nodePorts.https` | `false` | The node port number to expose Envoy's HTTPS listener on. If not specified, a node port will be auto-assigned by Kubernetes. |
+| `envoy.service.aws.loadBalancerType` | `classic` | The type of AWS load balancer to provision. Options are 'classic' and 'nlb'. |
 
-  ```yaml
-  envoy:
-    service:
-      annotations:
-        annotation-key-1: val-1
-        ...
-  ```
+TLS configuration to secure the communication between Contour and Envoy.
 
-## Upgrading
+| Config | Default | Description |
+|--------|---------|-------------|
+| `certificates.useCertManager` | `false` | Whether to use cert-manager to provision TLS certificates for securing the communication between Contour and Envoy. If `false`, the `contour-certgen` Job will be used to provision certificates. If `true`, cert-manager must be installed in the cluster. See: https://github.com/kadras-io/package-for-cert-manager. |
+| `certificates.duration` | `8760h` | If using cert-manager, how long the certificates should be valid for. If `useCertManager` is false, this field is ignored. |
+| `certificates.renewBefore` | `360h` | If using cert-manager, how long before expiration the certificates should be renewed. If `useCertManager` is false, this field is ignored. |
 
-You can upgrade an existing package to a newer version using `kctrl`.
+</details>
 
-  ```shell
-  kctrl package installed update -i contour \
-    -v <new-version> \
-    -n kadras-packages
-  ```
+## 🛡️&nbsp; Security
 
-You can also update an existing package with a newer `values.yml` file.
+The security process for reporting vulnerabilities is described in [SECURITY.md](SECURITY.md).
 
-  ```shell
-  kctrl package installed update -i contour \
-    -n kadras-packages \
-    --values-file values.yml
-  ```
+## 🖊️&nbsp; License
 
-## Other
+This project is licensed under the **Apache License 2.0**. See [LICENSE](LICENSE) for more information.
 
-The recommended way of installing the Cert Manager package is via the [Kadras package repository](https://github.com/kadras-io/kadras-packages). If you prefer not using the repository, you can install the package by creating the necessary Carvel `PackageMetadata` and `Package` resources directly using [`kapp`](https://carvel.dev/kapp/docs/latest/install) or `kubectl`.
+## 🙏&nbsp; Acknowledgments
 
-  ```shell
-  kubectl create namespace kadras-packages
-  kapp deploy -a contour-package -n kadras-packages -y \
-    -f https://github.com/kadras-io/package-for-contour/releases/latest/download/metadata.yml \
-    -f https://github.com/kadras-io/package-for-contour/releases/latest/download/package.yml
-  ```
-
-## Support and Documentation
-
-For support and documentation specific to Contour, check out [projectcontour.io](https://projectcontour.io).
-
-## References
-
-This package is based on the original Contour package used in [Tanzu Community Edition](https://github.com/vmware-tanzu/community-edition) before its retirement.
-
-## Supply Chain Security
-
-This project is compliant with level 3 of the [SLSA Framework](https://slsa.dev).
-
-<img src="https://slsa.dev/images/SLSA-Badge-full-level3.svg" alt="The SLSA Level 3 badge" width=200>
+This package is based on the original Contour package used in the [Tanzu Community Edition](https://github.com/vmware-tanzu/community-edition) project before its retirement.

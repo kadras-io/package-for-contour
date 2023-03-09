@@ -6,8 +6,9 @@ directories:
       url: https://github.com/projectcontour/contour
     includePaths:
     - examples/render/contour.yaml
-    newRootPath: examples/render
+    - examples/deployment/03-envoy-deployment.yaml
+    newRootPath: examples
     path: .
   path: config/upstream
 kind: Config
-minimumRequiredVersion: ""
+minimumRequiredVersion: 0.32.0

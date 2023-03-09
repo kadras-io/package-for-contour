@@ -1,0 +1,23 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
+
+#@ if data.values.envoy.workload.type == "Deployment":
+
+#@overlay/match by=overlay.subset({"kind":"DaemonSet", "metadata":{"name":"envoy"}})
+#@overlay.remove
+---
+
+#@overlay/match by=overlay.subset({"kind":"Deployment", "metadata":{"name":"envoy"}})
+---
+spec:
+  replicas: #@ data.values.envoy.workload.replicas
+  template:
+    spec:
+      containers:
+      #@overlay/match by="name", expects=1
+      - name: envoy
+        args:
+        #@overlay/match by=overlay.subset("--log-level info")
+        - #@ "--log-level " + data.values.envoy.config.logLevel
+
+#@ end

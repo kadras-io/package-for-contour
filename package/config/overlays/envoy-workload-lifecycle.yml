@@ -1,0 +1,28 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
+
+#! A liveness probe needs to be added to the envoy container to prevent it
+#! from being stuck in unready/draining state.
+#! See: https://projectcontour.io/docs/latest/troubleshooting/envoy-container-draining
+#! See: https://github.com/projectcontour/contour/issues/4851
+
+#@ daemonset = overlay.subset({"kind":"DaemonSet", "metadata":{"name":"envoy"}})
+#@ deployment = overlay.subset({"kind":"Deployment", "metadata":{"name":"envoy"}})
+
+#@overlay/match by=overlay.or_op(daemonset, deployment), expects=1
+---
+spec:
+  template:
+    spec:
+      containers:
+      #@overlay/match by="name", expects=1
+      - name: envoy
+        #@overlay/match missing_ok=True
+        livenessProbe:
+          httpGet:
+            path: /ready
+            port: 8002
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          failureThreshold: 6
+      terminationGracePeriodSeconds: #@ int(data.values.envoy.workload.terminationGracePeriodSeconds)

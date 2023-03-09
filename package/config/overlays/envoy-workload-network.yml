@@ -1,0 +1,40 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
+#@ load("/contour.star", "get_envoy_container_port_http", "get_envoy_container_port_https")
+
+#@ daemonset = overlay.subset({"kind":"DaemonSet", "metadata":{"name":"envoy"}})
+#@ deployment = overlay.subset({"kind":"Deployment", "metadata":{"name":"envoy"}})
+
+#@overlay/match by=overlay.or_op(daemonset, deployment), expects=1
+---
+spec:
+  template:
+    spec:
+      containers:
+      #@overlay/match by="name", expects=1
+      - name: envoy
+        ports:
+        #@overlay/match by=overlay.subset({"name":"http"})
+        -
+          containerPort: #@ get_envoy_container_port_http()
+          #@ if data.values.envoy.workload.hostPorts.enabled:
+          hostPort: #@ data.values.envoy.workload.hostPorts.http
+          #@ else:
+          #@overlay/remove
+          hostPort: 80
+          #@ end
+        #@overlay/match by=overlay.subset({"name":"https"})
+        -
+          containerPort: #@ get_envoy_container_port_https()
+          #@ if data.values.envoy.workload.hostPorts.enabled:
+          hostPort: #@ data.values.envoy.workload.hostPorts.https
+          #@ else:
+          #@overlay/remove
+          hostPort: 443
+          #@ end
+      #@ if data.values.envoy.workload.hostNetwork:
+      #@overlay/match missing_ok=True
+      hostNetwork: true
+      #@overlay/match missing_ok=True
+      dnsPolicy: ClusterFirstWithHostNet
+      #@ end

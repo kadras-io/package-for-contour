@@ -1,0 +1,6 @@
+---
+apiVersion: kuttl.dev/v1beta1
+kind: TestStep
+commands:
+  - script: |
+      kapp deploy -a kuard -f https://projectcontour.io/examples/kuard.yaml -y

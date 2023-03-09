@@ -1,20 +1,14 @@
 #@ load("@ytt:data", "data")
 #@ load("@ytt:overlay", "overlay")
-#@ load("@ytt:regexp", "regexp")
-
-#@ def regex_match(x, l, r):
-#@ if not ("metadata" in l and "name" in l["metadata"]):
-#@   return False
-#@ end
-#@ return regexp.match("contour-certgen*", l["metadata"]["name"])
-#@ end
 
 #@ if data.values.certificates.useCertManager:
-#@overlay/match by=regex_match,expects="0+"
-#@overlay.remove
----
 
-#@overlay/match by=overlay.subset({"roleRef": {"name": "contour-certgen"}})
+#@ certgen_sa = overlay.subset({"kind":"ServiceAccount", "metadata":{"name":"contour-certgen"}})
+#@ certgen_rb = overlay.subset({"kind":"RoleBinding", "roleRef":{"name":"contour-certgen"}})
+#@ certgen_role = overlay.subset({"kind":"Role", "metadata":{"name":"contour-certgen"}})
+#@ certgen_job = overlay.subset({"kind":"Job"})
+
+#@overlay/match by=overlay.or_op(certgen_sa, certgen_rb, certgen_role, certgen_job), expects=4
 #@overlay.remove
 ---
 

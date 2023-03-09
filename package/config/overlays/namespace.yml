@@ -1,20 +1,22 @@
-#@ load("@ytt:overlay", "overlay")
 #@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
 
-#@overlay/match by=overlay.subset({"kind":"Namespace", "metadata": {"name": "projectcontour"}}), expects=1
+#@overlay/match by=overlay.subset({"kind":"Namespace", "metadata":{"name":"projectcontour"}}), expects=1
 ---
 metadata:
   name: #@ data.values.namespace
 
-#! Ignore Cert Manager objects because the code for generating them is already setting the namespace correctly.
-#@overlay/match by=overlay.and_op(overlay.subset({"metadata": {"namespace": "projectcontour"}}), overlay.not_op(overlay.subset({"apiVersion": "cert-manager.io/v1"}))), expects="13+"
+#@overlay/match by=overlay.subset({"metadata":{"namespace":"projectcontour"}}), expects="12+"
 ---
 metadata:
   namespace: #@ data.values.namespace
 
-#@overlay/match by=overlay.or_op(overlay.subset({"kind":"ClusterRoleBinding"}), overlay.subset({"kind":"RoleBinding"})), expects=3
+#@ cluster_role_binding = overlay.subset({"kind":"ClusterRoleBinding"})
+#@ role_binding = overlay.subset({"kind":"RoleBinding"})
+
+#@overlay/match by=overlay.or_op(cluster_role_binding, role_binding), expects="2+"
 ---
 subjects:
-#@overlay/match by=overlay.subset({"namespace": "projectcontour"})
+#@overlay/match by=overlay.subset({"namespace":"projectcontour"})
 - kind: ServiceAccount
   namespace: #@ data.values.namespace
