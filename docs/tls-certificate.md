@@ -10,3 +10,5 @@ certificates:
   duration: 8760h
   renewBefore: 360h
 ```
+
+For more information, check the Contour documentation for [enabling TLS between Envoy and Contour](https://projectcontour.io/docs/latest/grpc-tls-howto).
