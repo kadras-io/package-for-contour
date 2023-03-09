@@ -1,4 +1,4 @@
-# TLS Certificate
+# Configuring TLS between Envoy and Contour
 
 The communication between Contour and Envoy is secured via mutual TLS authentication. By default, Contour generates the necessary TLS certificates via a `Job`.
 
