@@ -30,9 +30,9 @@ metadata:
   name: contour
   namespace: projectcontour
 spec:
-  replicas: 1
+  replicas: 2
 status:
-  readyReplicas: 1
+  readyReplicas: 2
 
 # Envoy Service
 ---
