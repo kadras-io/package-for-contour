@@ -4,9 +4,6 @@ metadata:
   creationTimestamp: null
   name: contour.packages.kadras.io.0.0.0
 spec:
-  capacityRequirementsDescription: Varies significantly based on number of Services,
-    Ingresses/HTTPProxies, etc. A starting point is 128MB RAM and 0.5 CPU for each
-    Contour and Envoy pod, but this can and should be tuned based on observed usage.
   licenses:
   - Apache 2.0
   refName: contour.packages.kadras.io
