@@ -9,13 +9,13 @@
 #@ daemonset = overlay.subset({"kind":"DaemonSet", "metadata":{"name":"envoy"}})
 #@ deployment = overlay.subset({"kind":"Deployment", "metadata":{"name":"envoy"}})
 
-#@overlay/match by=overlay.or_op(daemonset, deployment), expects=1
+#@overlay/match by=overlay.or_op(daemonset, deployment)
 ---
 spec:
   template:
     spec:
       containers:
-      #@overlay/match by="name", expects=1
+      #@overlay/match by="name"
       - name: envoy
         #@overlay/match missing_ok=True
         livenessProbe:

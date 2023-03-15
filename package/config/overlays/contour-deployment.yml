@@ -7,14 +7,14 @@
 #! See: https://projectcontour.io/docs/latest/deploy-options/#setting-resource-requests-and-limits
 #! See: https://projectcontour.io/docs/latest/guides/resource-limits/
 
-#@overlay/match by=overlay.subset({"kind":"Deployment", "metadata":{"name":"contour"}}), expects=1
+#@overlay/match by=overlay.subset({"kind":"Deployment", "metadata":{"name":"contour"}})
 ---
 spec:
   replicas: #@ data.values.contour.replicas
   template:
     spec:
       containers:
-      #@overlay/match by="name", expects=1
+      #@overlay/match by="name"
       - name: contour
         #@overlay/replace
         args: #@ get_contour_deployment_args()

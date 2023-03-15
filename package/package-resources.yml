@@ -7,7 +7,7 @@ spec:
   licenses:
   - Apache 2.0
   refName: contour.packages.kadras.io
-  releaseNotes: https://github.com/projectcontour/contour/releases
+  releaseNotes: https://github.com/kadras-io/package-for-contour/releases
   releasedAt: null
   template:
     spec:

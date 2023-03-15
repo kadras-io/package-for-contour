@@ -1,7 +1,7 @@
 #@ load("@ytt:data", "data")
 #@ load("@ytt:overlay", "overlay")
 
-#@overlay/match by=overlay.subset({"kind":"Namespace", "metadata":{"name":"projectcontour"}}), expects=1
+#@overlay/match by=overlay.subset({"kind":"Namespace", "metadata":{"name":"projectcontour"}})
 ---
 metadata:
   name: #@ data.values.namespace

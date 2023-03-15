@@ -13,7 +13,7 @@ spec:
   template:
     spec:
       containers:
-      #@overlay/match by="name", expects=1
+      #@overlay/match by="name"
       - name: envoy
         args:
         #@overlay/match by=overlay.subset("--log-level info")

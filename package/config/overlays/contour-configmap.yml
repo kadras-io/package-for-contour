@@ -6,19 +6,19 @@
 #! 2. Overlay the decoded/parsed YAML with the custom configuration.
 #! 3. Re-encode the overlayed result to a string.
 
-#@overlay/match by=overlay.subset({"kind":"ConfigMap","metadata":{"name":"contour"}}), expects=1
+#@overlay/match by=overlay.subset({"kind":"ConfigMap", "metadata":{"name":"contour"}})
 ---
 data:
   #@overlay/replace via=lambda left, _: yaml.decode(left)
   contour.yaml:
 
-#@overlay/match by=overlay.subset({"kind":"ConfigMap","metadata":{"name":"contour"}}), expects=1
+#@overlay/match by=overlay.subset({"kind":"ConfigMap", "metadata":{"name":"contour"}})
 ---
 data:
   #@overlay/match-child-defaults missing_ok=True
   contour.yaml: #@ data.values.contour.configFileContents
 
-#@overlay/match by=overlay.subset({"kind":"ConfigMap","metadata":{"name":"contour"}}), expects=1
+#@overlay/match by=overlay.subset({"kind":"ConfigMap", "metadata":{"name":"contour"}})
 ---
 data:
   #@overlay/replace via=lambda left, _: yaml.encode(left)
