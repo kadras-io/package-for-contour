@@ -12,3 +12,5 @@ stringData:
         nodePorts:
           http: 30080
           https: 30443
+    certificates:
+      useCertManager: false

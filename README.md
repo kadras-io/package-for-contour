@@ -21,6 +21,10 @@ A Carvel package for [Contour](https://projectcontour.io), a high performance in
     -f https://github.com/carvel-dev/kapp-controller/releases/latest/download/release.yml
   ```
 
+### Dependencies
+
+By default, Contour requires [Cert Manager](https://github.com/kadras-io/package-for-cert-manager). You can install it from the [Kadras package repository](https://github.com/kadras-io/kadras-packages).
+
 ### Installation
 
 Add the Kadras [package repository](https://github.com/kadras-io/kadras-packages) to your Kubernetes cluster:
@@ -137,7 +141,7 @@ TLS configuration to secure the communication between Contour and Envoy.
 
 | Config | Default | Description |
 |--------|---------|-------------|
-| `certificates.useCertManager` | `false` | Whether to use cert-manager to provision TLS certificates for securing the communication between Contour and Envoy. If `false`, the `contour-certgen` Job will be used to provision certificates. If `true`, cert-manager must be installed in the cluster. See: https://github.com/kadras-io/package-for-cert-manager. |
+| `certificates.useCertManager` | `true` | Whether to use cert-manager to provision TLS certificates for securing the communication between Contour and Envoy. If `false`, the `contour-certgen` Job will be used to provision certificates. If `true`, cert-manager must be installed in the cluster. See: https://github.com/kadras-io/package-for-cert-manager. |
 | `certificates.duration` | `8760h` | If using cert-manager, how long the certificates should be valid for. If `useCertManager` is false, this field is ignored. |
 | `certificates.renewBefore` | `360h` | If using cert-manager, how long before expiration the certificates should be renewed. If `useCertManager` is false, this field is ignored. |
 

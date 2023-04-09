@@ -91,7 +91,7 @@ envoy:
 #@schema/desc "TLS configuration to secure the communication between Contour and Envoy."
 certificates:
   #@schema/desc "Whether to use cert-manager to provision TLS certificates for securing the communication between Contour and Envoy. If `false`, the `contour-certgen` Job will be used to provision certificates. If `true`, cert-manager must be installed in the cluster. See: https://github.com/kadras-io/package-for-cert-manager."
-  useCertManager: false
+  useCertManager: true
   #@schema/desc "If using cert-manager, how long the certificates should be valid for. If `useCertManager` is false, this field is ignored."
   #@schema/validation min_len=2, when=lambda _, ctx: ctx.parent["useCertManager"]
   duration: 8760h
