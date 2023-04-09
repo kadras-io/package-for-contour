@@ -2,7 +2,7 @@ apiVersion: vendir.k14s.io/v1alpha1
 directories:
 - contents:
   - git:
-      ref: v1.24.2
+      ref: v1.24.3
       url: https://github.com/projectcontour/contour
     includePaths:
     - examples/render/contour.yaml
