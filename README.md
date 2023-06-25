@@ -74,11 +74,10 @@ For documentation specific to Contour, check out [projectcontour.io](https://pro
 The Contour package can be customized via a `values.yml` file.
 
   ```yaml
-  namespace: projectcontour
-
-  envoy:
-    service:
-      type: ClusterIP
+  contour:
+    config:
+      logFormat: json
+      useProxyProtocol: true
   ```
 
 Reference the `values.yml` file from the `kctrl` command when installing or upgrading the package.
@@ -99,7 +98,7 @@ The Contour package has the following configurable properties.
 
 | Config | Default | Description |
 |--------|---------|-------------|
-| `infrastructure_provider` | `""` | The underlying infrastructure provider. Options are `aws`, `local` and `vsphere`. This field is not required, but it enables better validation and defaulting if provided. |
+| `infrastructure_provider` | `""` | The underlying infrastructure provider. Options are `aws`, `do`, `local` and `vsphere`. This field is not required, but it enables better validation and defaulting if provided. |
 | `namespace` | `projectcontour` | The namespace in which to deploy Contour and Envoy. |
 
 Settings for the Contour component.

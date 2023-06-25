@@ -1,0 +1,22 @@
+#@ load("@ytt:data", "data")
+
+---
+apiVersion: kapp.k14s.io/v1alpha1
+kind: Config
+
+minimumRequiredVersion: 0.50.0
+
+#! Rebase rules explicitly define how kapp should merge resources during an update.
+#! See more about the resource merge method: https://carvel.dev/kapp/docs/latest/merge-method.
+rebaseRules:
+
+#! Cloud platforms usually add annotations on LoadBalancer Services.
+#! We want to keep them between upgrades and merge them with the one configured by the package.
+- path: [metadata, annotations, kubernetes.digitalocean.com/load-balancer-id]
+  type: copy
+  sources: [existing, new]
+  resourceMatchers:
+  - kindNamespaceNameMatcher:
+      kind: Service
+      namespace: #@ data.values.namespace
+      name: envoy

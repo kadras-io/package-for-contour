@@ -1,7 +1,7 @@
 #@data/values-schema
 ---
-#@schema/desc "The underlying infrastructure provider. Options are `aws`, `local` and `vsphere`. This field is not required, but it enables better validation and defaulting if provided."
-#@schema/validation one_of=["aws", "local", "vsphere"]
+#@schema/desc "The underlying infrastructure provider. Options are `aws`, `do`, `local` and `vsphere`. This field is not required, but it enables better validation and defaulting if provided."
+#@schema/validation one_of=["aws", "do", "local", "vsphere"]
 #@schema/nullable
 infrastructure_provider: ""
 
