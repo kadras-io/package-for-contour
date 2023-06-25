@@ -21,6 +21,8 @@ envoy:
     logLevel: info
 ```
 
+Structured JSON logging can be configured for the Envoy access logs. Check the documentation for [access logs](https://projectcontour.io/docs/latest/config/access-logging/) and [structured logging](https://projectcontour.io/docs/latest/guides/structured-logs/) for more information.
+
 ## Metrics
 
 The Contour and Envoy components produce Prometheus metrics by default. This package comes pre-configured with the necessary annotations to let Prometheus scrape metrics automatically.

@@ -58,33 +58,33 @@ def get_envoy_container_port_https():
 end
 
 def get_envoy_service_type():
-  if data.values.envoy.service.type:
-    return data.values.envoy.service.type
-  elif data.values.infrastructureProvider == "local":
+  if data.values.infrastructure_provider == "local":
     return "NodePort"
-  elif data.values.infrastructureProvider == "vsphere":
+  elif data.values.infrastructure_provider == "vsphere":
     return "NodePort"
   else:
-    return "LoadBalancer"
+    return data.values.envoy.service.type
   end
 end
 
 def get_envoy_service_external_traffic_policy():
-  if data.values.envoy.service.externalTrafficPolicy:
-    return data.values.envoy.service.externalTrafficPolicy
-  elif data.values.infrastructureProvider == "vsphere":
+  if data.values.infrastructure_provider == "aws":
+    return "Local"
+  elif data.values.infrastructure_provider == "vsphere":
     return "Cluster"
   else:
-    return "Local"
+    return data.values.envoy.service.externalTrafficPolicy
   end
 end
 
 def get_envoy_service_annotations():
   annotations = {}
 
-  if data.values.infrastructureProvider == "aws":
+  if data.values.infrastructure_provider == "aws":
     if data.values.envoy.service.aws.loadBalancerType == "nlb":
-      annotations["service.beta.kubernetes.io/aws-load-balancer-type"] = "nlb"
+      annotations["service.beta.kubernetes.io/aws-load-balancer-type"] = "external"
+      annotations["service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"] = "ip"
+      annotations["service.beta.kubernetes.io/aws-load-balancer-scheme"] = "internet-facing"
     else:
       # This annotation puts the AWS ELB into "TCP" mode so that it does not
       # do HTTP negotiation for HTTPS connections at the ELB edge.
@@ -93,6 +93,8 @@ def get_envoy_service_annotations():
       # the PROXY protocol on the ELB to recover the original remote IP address
       # via another annotation.
       annotations["service.beta.kubernetes.io/aws-load-balancer-backend-protocol"] = "tcp"
+    end
+    if data.values.contour.config.useProxyProtocol:
       annotations["service.beta.kubernetes.io/aws-load-balancer-proxy-protocol"] = "*"
     end
   end
