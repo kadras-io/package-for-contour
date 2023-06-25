@@ -2,7 +2,7 @@
 
 ![Test Workflow](https://github.com/kadras-io/package-for-contour/actions/workflows/test.yml/badge.svg)
 ![Release Workflow](https://github.com/kadras-io/package-for-contour/actions/workflows/release.yml/badge.svg)
-[![The SLSA Level 3 badge](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev/spec/v0.1/levels)
+[![The SLSA Level 3 badge](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev/spec/v1.0/levels)
 [![The Apache 2.0 license badge](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Follow us on Twitter](https://img.shields.io/static/v1?label=Twitter&message=Follow&color=1DA1F2)](https://twitter.com/kadrasIO)
 
@@ -12,7 +12,7 @@ A Carvel package for [Contour](https://projectcontour.io), a high performance in
 
 ### Prerequisites
 
-* Kubernetes 1.24+
+* Kubernetes 1.25+
 * Carvel [`kctrl`](https://carvel.dev/kapp-controller/docs/latest/install/#installing-kapp-controller-cli-kctrl) CLI.
 * Carvel [kapp-controller](https://carvel.dev/kapp-controller) deployed in your Kubernetes cluster. You can install it with Carvel [`kapp`](https://carvel.dev/kapp/docs/latest/install) (recommended choice) or `kubectl`.
 
@@ -26,10 +26,9 @@ A Carvel package for [Contour](https://projectcontour.io), a high performance in
 Add the Kadras [package repository](https://github.com/kadras-io/kadras-packages) to your Kubernetes cluster:
 
   ```shell
-  kubectl create namespace kadras-packages
   kctrl package repository add -r kadras-packages \
     --url ghcr.io/kadras-io/kadras-packages \
-    -n kadras-packages
+    -n kadras-packages --create-namespace
   ```
 
 <details><summary>Installation without package repository</summary>
@@ -75,11 +74,10 @@ For documentation specific to Contour, check out [projectcontour.io](https://pro
 The Contour package can be customized via a `values.yml` file.
 
   ```yaml
-  namespace: projectcontour
-
-  envoy:
-    service:
-      type: ClusterIP
+  contour:
+    config:
+      logFormat: json
+      useProxyProtocol: true
   ```
 
 Reference the `values.yml` file from the `kctrl` command when installing or upgrading the package.
@@ -100,7 +98,7 @@ The Contour package has the following configurable properties.
 
 | Config | Default | Description |
 |--------|---------|-------------|
-| `infrastructureProvider` | `""` | The underlying infrastructure provider. Options are `aws`, `azure`, `local` and `vsphere`. This field is not required, but it enables better validation and defaulting if provided. |
+| `infrastructure_provider` | `""` | The underlying infrastructure provider. Options are `aws`, `do`, `local` and `vsphere`. This field is not required, but it enables better validation and defaulting if provided. |
 | `namespace` | `projectcontour` | The namespace in which to deploy Contour and Envoy. |
 
 Settings for the Contour component.
@@ -119,19 +117,20 @@ Settings for the Envoy component.
 |--------|---------|-------------|
 | `envoy.workload.type` | `DaemonSet` | The type of Kubernetes workload that Envoy is deployed as. Options are `Deployment` or `DaemonSet`. |
 | `envoy.workload.replicas` | `2` | The number of Envoy replicas to deploy when `type` is set to `Deployment`. |
-| `envoy.workload.hostPorts.enabled` | `false` | Whether to enable host ports. If false, http & https are ignored. |
+| `envoy.workload.hostPorts.enabled` | `true` | Whether to enable host ports. If false, http & https are ignored. |
 | `envoy.workload.hostPorts.http` | `80` | If enabled, the host port number to expose Envoy's HTTP listener on. |
 | `envoy.workload.hostPorts.https` | `443` | If enabled, the host port number to expose Envoy's HTTPS listener on. |
 | `envoy.workload.hostNetwork` | `false` | Whether to enable host networking for the Envoy pods. |
+| `envoy.workload.dnsPolicy` | `ClusterFirst` | The DNS policy for the Envoy pods. |
 | `envoy.workload.terminationGracePeriodSeconds` | `300` | The termination grace period, in seconds, for the Envoy pods. |
 | `envoy.config.logLevel` | `info` | The Envoy log level. |
-| `envoy.service.type` | `""` | The type of Kubernetes service to provision for Envoy. If not specified, it will default to `NodePort` for local and vsphere and `LoadBalancer` for others. |
-| `envoy.service.loadBalancerIP` | `""` | The desired load balancer IP. If `type` is not `LoadBalancer', this field is ignored. It is up to the cloud provider whether to honor this request. If not specified, then load balancer IP will be assigned by the cloud provider. |
-| `envoy.service.externalTrafficPolicy` | `""` | The external traffic policy for the Envoy service. If type is `ClusterIP`, this field is ignored. Otherwise, it defaults to `Cluster` for vsphere and `Local` for others. |
+| `envoy.service.type` | `LoadBalancer` | The type of Kubernetes service to provision for Envoy in case the `infrastructure_provider` doesn't enforce one already. |
+| `envoy.service.loadBalancerIP` | `""` | The desired load balancer IP. If `type` is not `LoadBalancer', this field is ignored. It is up to the cloud provider whether to honor this request. If not specified, the load balancer IP will be assigned by the cloud provider. |
+| `envoy.service.externalTrafficPolicy` | `Local` | The external traffic policy for the Envoy service in case the `infrastructure_provider` doesn't enforce one already. |
 | `envoy.service.annotations` | `false` | Annotations to set on the Envoy service. |
 | `envoy.service.nodePorts.http` | `false` | The node port number to expose Envoy's HTTP listener on. If not specified, a node port will be auto-assigned by Kubernetes. |
 | `envoy.service.nodePorts.https` | `false` | The node port number to expose Envoy's HTTPS listener on. If not specified, a node port will be auto-assigned by Kubernetes. |
-| `envoy.service.aws.loadBalancerType` | `classic` | The type of AWS load balancer to provision. Options are 'classic' and 'nlb'. |
+| `envoy.service.aws.loadBalancerType` | `classic` | AWS-specific settings for the Envoy service. If `infrastructure_provider` is not `aws`, these settings are ignored. |
 
 TLS configuration to secure the communication between Contour and Envoy.
 

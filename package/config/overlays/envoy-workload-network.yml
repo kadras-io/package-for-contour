@@ -32,9 +32,7 @@ spec:
           #@overlay/remove
           hostPort: 443
           #@ end
-      #@ if data.values.envoy.workload.hostNetwork:
       #@overlay/match missing_ok=True
-      hostNetwork: true
+      hostNetwork: #@ data.values.envoy.workload.hostNetwork
       #@overlay/match missing_ok=True
-      dnsPolicy: ClusterFirstWithHostNet
-      #@ end
+      dnsPolicy: #@ data.values.envoy.workload.dnsPolicy
