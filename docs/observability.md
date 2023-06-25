@@ -28,3 +28,7 @@ Structured JSON logging can be configured for the Envoy access logs. Check the d
 The Contour and Envoy components produce Prometheus metrics by default. This package comes pre-configured with the necessary annotations to let Prometheus scrape metrics automatically.
 
 For more information, check the Contour documentation for [collecting metrics with Prometheus](https://projectcontour.io/docs/latest/guides/prometheus).
+
+## Traces
+
+For more information, check the Contour documentation for [supporting distributed tracing with OpenTelemetry](https://projectcontour.io/docs/latest/config/tracing/).
