@@ -68,9 +68,7 @@ def get_envoy_service_type():
 end
 
 def get_envoy_service_external_traffic_policy():
-  if data.values.infrastructure_provider == "aws":
-    return "Local"
-  elif data.values.infrastructure_provider == "vsphere":
+  if data.values.infrastructure_provider == "vsphere":
     return "Cluster"
   else:
     return data.values.envoy.service.externalTrafficPolicy
@@ -79,25 +77,6 @@ end
 
 def get_envoy_service_annotations():
   annotations = {}
-
-  if data.values.infrastructure_provider == "aws":
-    if data.values.envoy.service.aws.loadBalancerType == "nlb":
-      annotations["service.beta.kubernetes.io/aws-load-balancer-type"] = "external"
-      annotations["service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"] = "ip"
-      annotations["service.beta.kubernetes.io/aws-load-balancer-scheme"] = "internet-facing"
-    else:
-      # This annotation puts the AWS ELB into "TCP" mode so that it does not
-      # do HTTP negotiation for HTTPS connections at the ELB edge.
-      # The downside of this is the remote IP address of all connections will
-      # appear to be the internal address of the ELB. That's why we enable
-      # the PROXY protocol on the ELB to recover the original remote IP address
-      # via another annotation.
-      annotations["service.beta.kubernetes.io/aws-load-balancer-backend-protocol"] = "tcp"
-    end
-    if data.values.contour.config.useProxyProtocol:
-      annotations["service.beta.kubernetes.io/aws-load-balancer-proxy-protocol"] = "*"
-    end
-  end
 
   if data.values.envoy.service.annotations:
     annotations_kvs = struct.decode(data.values.envoy.service.annotations)

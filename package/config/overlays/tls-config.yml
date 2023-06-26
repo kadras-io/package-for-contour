@@ -28,13 +28,13 @@ metadata:
   namespace: #@ data.values.namespace
 spec:
   isCA: true
-  commonName: Contour CA
+  commonName: contour
   secretName: contour-root-ca
   duration: 8760h #! 365 days
   renewBefore: 360h #! 15 days
   subject:
     organizations:
-    - Project Contour
+    - contour
   privateKey:
     algorithm: Ed25519
     encoding: PKCS8
@@ -65,7 +65,7 @@ spec:
   renewBefore: #@ data.values.certificates.renewBefore
   subject:
     organizations:
-    - Project Contour
+    - contour
   commonName: contour
   privateKey:
     algorithm: RSA
@@ -91,7 +91,7 @@ spec:
   renewBefore: #@ data.values.certificates.renewBefore
   subject:
     organizations:
-    - Project Contour
+    - contour
   commonName: envoy
   privateKey:
     algorithm: RSA
