@@ -10,11 +10,16 @@ minimumRequiredVersion: 0.50.0
 #! See more about the resource merge method: https://carvel.dev/kapp/docs/latest/merge-method.
 rebaseRules:
 
-#! Cloud platforms usually add annotations on LoadBalancer Services.
-#! We want to keep them between upgrades and merge them with the one configured by the package.
-- path: [metadata, annotations, kubernetes.digitalocean.com/load-balancer-id]
+#! Specify which fields should be removed before diff-ing against last applied resource.
+#! See more: https://carvel.dev/kapp/docs/latest/config/#diffagainstlastappliedfieldexclusionrules
+diffAgainstLastAppliedFieldExclusionRules:
+
+#! Each cloud provider will add its own custom annotations to the Envoy Service in order
+#! to configure the associated load balancer. We want to keep those annotations between
+#! upgrades, so we exclude them from the diff to prevent them being overwritten.
+- path: [metadata, annotations]
   type: copy
-  sources: [existing, new]
+  sources: [existing]
   resourceMatchers:
   - kindNamespaceNameMatcher:
       kind: Service

@@ -1,7 +1,7 @@
 #@data/values-schema
 ---
-#@schema/desc "The underlying infrastructure provider. Options are `aws`, `do`, `local` and `vsphere`. This field is not required, but it enables better validation and defaulting if provided."
-#@schema/validation one_of=["aws", "do", "local", "vsphere"]
+#@schema/desc "The underlying infrastructure provider. Options are `local` and `vsphere`. This field is not required, but it enables better validation and defaulting if provided."
+#@schema/validation one_of=["local", "vsphere"]
 #@schema/nullable
 infrastructure_provider: ""
 
@@ -83,11 +83,6 @@ envoy:
       http: 0
       #@schema/desc "The node port number to expose Envoy's HTTPS listener on. If not specified, a node port will be auto-assigned by Kubernetes."
       https: 0
-    #@schema/desc "AWS-specific settings for the Envoy service. If `infrastructure_provider` is not `aws`, these settings are ignored."
-    aws:
-      #@schema/desc "The type of AWS load balancer to provision. Options are 'classic' and 'nlb'."
-      #@schema/validation one_of=["classic", "nlb"]
-      loadBalancerType: classic
 
 #@schema/desc "TLS configuration to secure the communication between Contour and Envoy."
 certificates:

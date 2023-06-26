@@ -98,7 +98,7 @@ The Contour package has the following configurable properties.
 
 | Config | Default | Description |
 |--------|---------|-------------|
-| `infrastructure_provider` | `""` | The underlying infrastructure provider. Options are `aws`, `do`, `local` and `vsphere`. This field is not required, but it enables better validation and defaulting if provided. |
+| `infrastructure_provider` | `""` | The underlying infrastructure provider. Options are `local` and `vsphere`. This field is not required, but it enables better validation and defaulting if provided. |
 | `namespace` | `projectcontour` | The namespace in which to deploy Contour and Envoy. |
 
 Settings for the Contour component.
@@ -130,7 +130,6 @@ Settings for the Envoy component.
 | `envoy.service.annotations` | `false` | Annotations to set on the Envoy service. |
 | `envoy.service.nodePorts.http` | `false` | The node port number to expose Envoy's HTTP listener on. If not specified, a node port will be auto-assigned by Kubernetes. |
 | `envoy.service.nodePorts.https` | `false` | The node port number to expose Envoy's HTTPS listener on. If not specified, a node port will be auto-assigned by Kubernetes. |
-| `envoy.service.aws.loadBalancerType` | `classic` | AWS-specific settings for the Envoy service. If `infrastructure_provider` is not `aws`, these settings are ignored. |
 
 TLS configuration to secure the communication between Contour and Envoy.
 
