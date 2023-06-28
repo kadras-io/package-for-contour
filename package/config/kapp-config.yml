@@ -6,9 +6,18 @@ kind: Config
 
 minimumRequiredVersion: 0.50.0
 
-#! Rebase rules explicitly define how kapp should merge resources during an update.
-#! See more about the resource merge method: https://carvel.dev/kapp/docs/latest/merge-method.
-rebaseRules:
+# Wait rules specify how to wait for resources that kapp does not wait for by default.
+# See more about the wait rules: https://carvel.dev/kapp/docs/latest/config/#waitrules.
+waitRules:
+
+- supportsObservedGeneration: false
+  conditionMatchers:
+  - type: Ready
+    status: "True"
+    success: true
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: cert-manager.io/v1, kind: Certificate}
+  - apiVersionKindMatcher: {apiVersion: cert-manager.io/v1, kind: Issuer}
 
 #! Specify which fields should be removed before diff-ing against last applied resource.
 #! See more: https://carvel.dev/kapp/docs/latest/config/#diffagainstlastappliedfieldexclusionrules
