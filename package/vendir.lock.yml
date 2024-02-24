@@ -2,10 +2,10 @@ apiVersion: vendir.k14s.io/v1alpha1
 directories:
 - contents:
   - git:
-      commitTitle: Update Contour Docker image to v1.27.0....
-      sha: 30f317ea4978ddfcdd3405b40032d74dc43efb02
+      commitTitle: Update Contour Docker image to v1.28.1....
+      sha: 56c95b79429720b31bcc499a9eea8e9ff868cfb2
       tags:
-      - v1.27.0
+      - v1.28.1
     path: .
   path: config/upstream
 kind: LockConfig
