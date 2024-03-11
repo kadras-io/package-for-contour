@@ -13,7 +13,7 @@ namespace: projectcontour
 contour:
   #@schema/desc "The number of Contour replicas. In order to enable high availability, it should be greater than 1."
   #@schema/validation min=1
-  replicas: 1
+  replicas: 2
   #@schema/desc "Configuration for the Contour Deployment."
   config:
     #@schema/desc "Log output format for Contour. Either `text` (default) or `json`."
