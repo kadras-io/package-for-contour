@@ -116,7 +116,7 @@ Settings for the Envoy component.
 | Config | Default | Description |
 |--------|---------|-------------|
 | `envoy.workload.type` | `DaemonSet` | The type of Kubernetes workload that Envoy is deployed as. Options are `Deployment` or `DaemonSet`. |
-| `envoy.workload.replicas` | `2` | The number of Envoy replicas to deploy when `type` is set to `Deployment`. |
+| `envoy.workload.replicas` | `1` | The number of Envoy replicas to deploy when `type` is set to `Deployment`. |
 | `envoy.workload.hostPorts.enabled` | `true` | Whether to enable host ports. If false, http & https are ignored. |
 | `envoy.workload.hostPorts.http` | `80` | If enabled, the host port number to expose Envoy's HTTP listener on. |
 | `envoy.workload.hostPorts.https` | `443` | If enabled, the host port number to expose Envoy's HTTPS listener on. |
