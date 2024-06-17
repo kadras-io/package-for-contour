@@ -22,7 +22,6 @@ You can configure the package to provision an AWS Network Load Balancer (NLB) in
 envoy:
   workload:
     hostNetwork: true
-    dnsPolicy: ClusterFirstWithHostNet
   service:
     annotations:
       service.beta.kubernetes.io/aws-load-balancer-type: external

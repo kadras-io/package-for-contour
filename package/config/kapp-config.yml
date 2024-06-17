@@ -34,3 +34,46 @@ diffAgainstLastAppliedFieldExclusionRules:
       kind: Service
       namespace: #@ data.values.namespace
       name: envoy
+
+#! Bind change groups to resources matched by resource matchers.
+#! See more: https://carvel.dev/kapp/docs/v0.62.x/config/#changegroupbindings
+changeGroupBindings:
+
+- name: change-groups.kapp.k14s.io/envoy-daemonset
+  resourceMatchers:
+  - kindNamespaceNameMatcher:
+      kind: DaemonSet
+      namespace: #@ data.values.namespace
+      name: envoy
+
+- name: change-groups.kapp.k14s.io/envoy-deployment
+  resourceMatchers:
+  - kindNamespaceNameMatcher:
+      kind: Deployment
+      namespace: #@ data.values.namespace
+      name: envoy
+
+
+#! Bind change groups to resources matched by resource matchers.
+#! See more: https://carvel.dev/kapp/docs/v0.62.x/config/#changerulebindings
+changeRuleBindings:
+
+#! Ensure zero-downtime when switching the Envoy workload
+#! from a DaemonSet to Deployment.
+- rules:
+  - "upsert before deleting change-groups.kapp.k14s.io/envoy-daemonset"
+  resourceMatchers:
+  - kindNamespaceNameMatcher:
+      kind: Deployment
+      namespace: #@ data.values.namespace
+      name: envoy
+
+#! Ensure zero-downtime when switching the Envoy workload
+#! from a Deployment to DaemonSet.
+- rules:
+  - "upsert before deleting change-groups.kapp.k14s.io/envoy-deployment"
+  resourceMatchers:
+  - kindNamespaceNameMatcher:
+      kind: DaemonSet
+      namespace: #@ data.values.namespace
+      name: envoy

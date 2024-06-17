@@ -9,9 +9,9 @@ load("@ytt:struct", "struct")
 def get_contour_deployment_args():
   args = [
     "serve",
+    "--config-path=/config/contour.yaml",
     "--incluster",
     "--xds-address=::",
-    "--xds-port=8001",
     "--stats-address=::",
     "--http-address=::",
     "--health-address=::",
@@ -22,7 +22,6 @@ def get_contour_deployment_args():
     "--contour-cafile=/certs/ca.crt",
     "--contour-cert-file=/certs/tls.crt",
     "--contour-key-file=/certs/tls.key",
-    "--config-path=/config/contour.yaml",
     "--log-format=" + data.values.contour.config.logFormat
   ]
   
@@ -55,33 +54,4 @@ def get_envoy_container_port_https():
   else:
     return 8443
   end
-end
-
-def get_envoy_service_type():
-  if data.values.infrastructure_provider == "local":
-    return "NodePort"
-  elif data.values.infrastructure_provider == "vsphere":
-    return "NodePort"
-  else:
-    return data.values.envoy.service.type
-  end
-end
-
-def get_envoy_service_external_traffic_policy():
-  if data.values.infrastructure_provider == "vsphere":
-    return "Cluster"
-  else:
-    return data.values.envoy.service.externalTrafficPolicy
-  end
-end
-
-def get_envoy_service_annotations():
-  annotations = {}
-
-  if data.values.envoy.service.annotations:
-    annotations_kvs = struct.decode(data.values.envoy.service.annotations)
-    annotations.update(annotations_kvs)
-  end
-
-  return annotations
 end

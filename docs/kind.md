@@ -9,7 +9,9 @@ kind create cluster --config test/setup/kind/local/kind-config.yml
 Then, configure Contour for local deployment, which will deploy Envoy as a `NodePort` Service.
 
 ```yaml
-infrastructure_provider: local
+contour:
+  service:
+    type: NodePort
 ```
 
 For more information, refer to the dedicated Contour [documentation](https://projectcontour.io/docs/latest/guides/kind/).

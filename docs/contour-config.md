@@ -1,12 +1,12 @@
 # Configuring Contour and Envoy via a Configuration File
 
-Besides the available properties, Contour can be configured via an optional YAML file value passed via the `contour.configFileContents` property.
+Besides the available properties, Contour can be configured via an optional YAML file value passed via the `contour.configMapData` property.
 
 For example, you can configure the minimum TLS version and the format for the Envoy access logs.
 
 ```yaml
 contour:
-  configFileContents:
+  configMapData:
     accesslog-format: json
     tls:
       minimum-protocol-version: 1.3

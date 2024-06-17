@@ -98,7 +98,6 @@ The Contour package has the following configurable properties.
 
 | Config | Default | Description |
 |--------|---------|-------------|
-| `infrastructure_provider` | `""` | The underlying infrastructure provider. Options are `local` and `vsphere`. This field is not required, but it enables better validation and defaulting if provided. |
 | `namespace` | `projectcontour` | The namespace in which to deploy Contour and Envoy. |
 
 Settings for the Contour component.
@@ -109,7 +108,7 @@ Settings for the Contour component.
 | `contour.config.logFormat` | `text` | Log output format for Contour. Either `text` (default) or `json`. |
 | `contour.config.logLevel` | `info` | The Contour log level. Valid options are `info` and `debug`. |
 | `contour.config.useProxyProtocol` | `false` | Whether to enable PROXY protocol for all Envoy listeners. |
-| `contour.configFileContents` | `""` | The YAML contents of the Contour config file. See https://projectcontour.io/docs/latest/configuration/#configuration-file for more information. |
+| `contour.configMapData` | `""` | The YAML contents of the Contour config file. See https://projectcontour.io/docs/latest/configuration/#configuration-file for more information. |
 
 Settings for the Envoy component.
 
@@ -124,9 +123,9 @@ Settings for the Envoy component.
 | `envoy.workload.dnsPolicy` | `ClusterFirst` | The DNS policy for the Envoy pods. |
 | `envoy.workload.terminationGracePeriodSeconds` | `300` | The termination grace period, in seconds, for the Envoy pods. |
 | `envoy.config.logLevel` | `info` | The Envoy log level. |
-| `envoy.service.type` | `LoadBalancer` | The type of Kubernetes service to provision for Envoy in case the `infrastructure_provider` doesn't enforce one already. |
+| `envoy.service.type` | `LoadBalancer` | The type of Kubernetes service to provision for Envoy. |
 | `envoy.service.loadBalancerIP` | `""` | The desired load balancer IP. If `type` is not `LoadBalancer', this field is ignored. It is up to the cloud provider whether to honor this request. If not specified, the load balancer IP will be assigned by the cloud provider. |
-| `envoy.service.externalTrafficPolicy` | `Local` | The external traffic policy for the Envoy service in case the `infrastructure_provider` doesn't enforce one already. |
+| `envoy.service.externalTrafficPolicy` | `Local` | The external traffic policy for the Envoy service. |
 | `envoy.service.annotations` | `false` | Annotations to set on the Envoy service. |
 | `envoy.service.nodePorts.http` | `false` | The node port number to expose Envoy's HTTP listener on. If not specified, a node port will be auto-assigned by Kubernetes. |
 | `envoy.service.nodePorts.https` | `false` | The node port number to expose Envoy's HTTPS listener on. If not specified, a node port will be auto-assigned by Kubernetes. |

@@ -16,7 +16,7 @@ data:
 ---
 data:
   #@overlay/match-child-defaults missing_ok=True
-  contour.yaml: #@ data.values.contour.configFileContents
+  contour.yaml: #@ data.values.contour.configMapData
 
 #@overlay/match by=overlay.subset({"kind":"ConfigMap", "metadata":{"name":"contour"}})
 ---

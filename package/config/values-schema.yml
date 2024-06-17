@@ -1,9 +1,5 @@
 #@data/values-schema
 ---
-#@schema/desc "The underlying infrastructure provider. Options are `local` and `vsphere`. This field is not required, but it enables better validation and defaulting if provided."
-#@schema/validation one_of=["local", "vsphere"]
-#@schema/nullable
-infrastructure_provider: ""
 
 #@schema/desc "The namespace in which to deploy Contour and Envoy."
 #@schema/validation min_len=1
@@ -24,9 +20,9 @@ contour:
     logLevel: info
     #@schema/desc "Whether to enable PROXY protocol for all Envoy listeners."
     useProxyProtocol: false
-  #@schema/desc "The YAML contents of the Contour config file. See https://projectcontour.io/docs/latest/configuration/#configuration-file for more information."
+  #@schema/desc "The YAML contents of the `contour` ConfigMap. See https://projectcontour.io/docs/latest/configuration/#configuration-file for more information."
   #@schema/type any=True
-  configFileContents: {}
+  configMapData: {}
 
 #@schema/desc "Settings for the Envoy component."
 envoy:
@@ -40,7 +36,7 @@ envoy:
     replicas: 2
     #@schema/desc "Host port settings for the Envoy pods."
     hostPorts:
-      #@schema/desc "Whether to enable host ports. If false, http & https are ignored."
+      #@schema/desc "Whether to enable host ports. If false, `http` & `https` are ignored."
       enabled: true
       #@schema/desc "If enabled, the host port number to expose Envoy's HTTP listener on."
       #@schema/validation min=1, when=lambda _, ctx: ctx.parent["enabled"]
@@ -50,9 +46,6 @@ envoy:
       https: 443
     #@schema/desc "Whether to enable host networking for the Envoy pods."
     hostNetwork: false
-    #@schema/desc "The DNS policy for the Envoy pods."
-    #@schema/validation one_of=["ClusterFirst", "ClusterFirstWithHostNet"]
-    dnsPolicy: ClusterFirst
     #@schema/desc "The termination grace period, in seconds, for the Envoy pods."
     #@schema/validation min=30
     terminationGracePeriodSeconds: 300
@@ -65,12 +58,12 @@ envoy:
 
   #@schema/desc "Envoy service settings."
   service:
-    #@schema/desc "The type of Kubernetes service to provision for Envoy in case the `infrastructure_provider` doesn't enforce one already."
-    #@schema/validation one_of=["NodePort", "ClusterIP", "LoadBalancer"], when=lambda _, ctx: not ctx.root["infrastructure_provider"]
+    #@schema/desc "The type of Kubernetes service to provision for Envoy."
+    #@schema/validation one_of=["NodePort", "ClusterIP", "LoadBalancer"]
     type: "LoadBalancer"
     #@schema/desc "The desired load balancer IP. If `type` is not `LoadBalancer', this field is ignored. It is up to the cloud provider whether to honor this request. If not specified, the load balancer IP will be assigned by the cloud provider."
     loadBalancerIP: ""
-    #@schema/desc "The external traffic policy for the Envoy service in case the `infrastructure_provider` doesn't enforce one already."
+    #@schema/desc "The external traffic policy for the Envoy service."
     #@schema/validation one_of=["Cluster", "Local"]
     externalTrafficPolicy: "Local"
     #@schema/desc "Annotations to set on the Envoy service."

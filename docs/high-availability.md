@@ -11,16 +11,12 @@ contour:
   replicas: 2
 ```
 
-The leader election strategy is enabled by default and can be customized via the `contour.configFileContents` property.
+The leader election strategy is enabled by default and can be customized via the `contour.configMapData` property.
 
 ```yaml
 contour:
-  configFileContents:
+  configMapData:
     leaderelection:
-      lease-duration: "15s"
-      renew-deadline: "10s"
-      retry-period: "2s"
-      configmap-name: "leader-elect"
       configmap-namespace: "projectcontour"
 ```
 
