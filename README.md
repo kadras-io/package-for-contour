@@ -108,7 +108,7 @@ Settings for the Contour component.
 | `contour.config.logFormat` | `text` | Log output format for Contour. Either `text` (default) or `json`. |
 | `contour.config.logLevel` | `info` | The Contour log level. Valid options are `info` and `debug`. |
 | `contour.config.useProxyProtocol` | `false` | Whether to enable PROXY protocol for all Envoy listeners. |
-| `contour.configMapData` | `""` | The YAML contents of the Contour config file. See https://projectcontour.io/docs/latest/configuration/#configuration-file for more information. |
+| `contour.configMapData` | `""` | The YAML contents of the `contour` ConfigMap. See https://projectcontour.io/docs/latest/configuration/#configuration-file for more information. |
 
 Settings for the Envoy component.
 
@@ -116,11 +116,10 @@ Settings for the Envoy component.
 |--------|---------|-------------|
 | `envoy.workload.type` | `DaemonSet` | The type of Kubernetes workload that Envoy is deployed as. Options are `Deployment` or `DaemonSet`. |
 | `envoy.workload.replicas` | `2` | The number of Envoy replicas to deploy when `type` is set to `Deployment`. |
-| `envoy.workload.hostPorts.enabled` | `true` | Whether to enable host ports. If false, http & https are ignored. |
+| `envoy.workload.hostPorts.enabled` | `true` | Whether to enable host ports. If false, `http` & `https` are ignored. |
 | `envoy.workload.hostPorts.http` | `80` | If enabled, the host port number to expose Envoy's HTTP listener on. |
 | `envoy.workload.hostPorts.https` | `443` | If enabled, the host port number to expose Envoy's HTTPS listener on. |
 | `envoy.workload.hostNetwork` | `false` | Whether to enable host networking for the Envoy pods. |
-| `envoy.workload.dnsPolicy` | `ClusterFirst` | The DNS policy for the Envoy pods. |
 | `envoy.workload.terminationGracePeriodSeconds` | `300` | The termination grace period, in seconds, for the Envoy pods. |
 | `envoy.config.logLevel` | `info` | The Envoy log level. |
 | `envoy.service.type` | `LoadBalancer` | The type of Kubernetes service to provision for Envoy. |
