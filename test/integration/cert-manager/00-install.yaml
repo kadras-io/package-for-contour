@@ -3,7 +3,6 @@ apiVersion: kuttl.dev/v1beta1
 kind: TestStep
 commands:
   - script: |
-      kapp delete -a kuard -y
       cd ../../../package && \
       kubectl config set-context --current --namespace=tests && \
-      ytt -f ../test/integration/nodeport/config -f package-resources.yml | kctrl dev -f- --local --delete -y
+      ytt -f ../test/integration/cert-manager/config -f package-resources.yml | kctrl dev -f- --local -y

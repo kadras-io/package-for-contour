@@ -1,0 +1,21 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: contour-cert
+  namespace: projectcontour
+status:
+  conditions:
+  - status: "True"
+    type: Ready
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: envoy-cert
+  namespace: projectcontour
+status:
+  conditions:
+  - status: "True"
+    type: Ready
