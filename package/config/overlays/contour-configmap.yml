@@ -12,6 +12,18 @@ data:
   #@overlay/replace via=lambda left, _: yaml.decode(left)
   contour.yaml:
 
+#@ if data.values.tracing.enabled:
+#@overlay/match by=overlay.subset({"kind":"ConfigMap", "metadata":{"name":"contour"}})
+---
+data:
+  #@overlay/match-child-defaults missing_ok=True
+  contour.yaml:
+    tracing:
+      extensionService:
+        nameservice: #@ data.values.namespace
+        name: "otel-collector"
+#@ end
+
 #@overlay/match by=overlay.subset({"kind":"ConfigMap", "metadata":{"name":"contour"}})
 ---
 data:

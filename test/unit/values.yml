@@ -1,0 +1,6 @@
+---
+tracing:
+  enabled: true
+  collector:
+    service: my-otel-collector
+    port: 4321

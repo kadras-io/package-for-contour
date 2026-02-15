@@ -25,7 +25,7 @@ Structured JSON logging can be configured for the Envoy access logs. Check the d
 
 ## Metrics
 
-The Contour and Envoy components produce Prometheus metrics by default. You can enable them by adding PodMonitor resources as described in the Contour documentation for [collecting metrics with Prometheus](https://projectcontour.io/docs/latest/guides/prometheus).
+The Contour and Envoy components produce Prometheus metrics by default. This package comes pre-configured with the necessary annotations to let Prometheus scrape metrics automatically from all its components. Check the documentation for [collecting metrics with Prometheus](https://projectcontour.io/docs/latest/guides/prometheus/).
 
 ## Traces
 

@@ -77,6 +77,19 @@ envoy:
       #@schema/desc "The node port number to expose Envoy's HTTPS listener on. If not specified, a node port will be auto-assigned by Kubernetes."
       https: 0
 
+#@schema/desc "Settings for distributed tracing."
+tracing:
+  #@schema/desc "Whether to enable distributed tracing for Contour and Envoy. If `true`, an OpenTelemetry compatible tracing backend must be available to receive the traces."
+  enabled: false
+  #@schema/desc "The OpenTelemetry collector service to send traces to. If `enabled` is false, this field is ignored."
+  collector:
+    #@schema/desc "The name of the OpenTelemetry collector service."
+    #@schema/validation min_len=1, when=lambda _, ctx: ctx.root["tracing"]["enabled"]
+    service: ""
+    #@schema/desc "The port on the OpenTelemetry collector service to send traces to."
+    #@schema/validation min=1, max=65535, when=lambda _, ctx: ctx.root["tracing"]["enabled"]
+    port: 4317
+
 #@schema/desc "TLS configuration to secure the communication between Contour and Envoy."
 certificates:
   #@schema/desc "Whether to use cert-manager to provision TLS certificates for securing the communication between Contour and Envoy. If `false`, the `contour-certgen` Job will be used to provision certificates. If `true`, cert-manager must be installed in the cluster. See: https://github.com/kadras-io/package-for-cert-manager."

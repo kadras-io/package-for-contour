@@ -1,0 +1,16 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
+
+#@ if data.values.tracing.enabled:
+---
+apiVersion: projectcontour.io/v1alpha1
+kind: ExtensionService
+metadata:
+  name: otel-collector
+  namespace: #@ data.values.namespace
+spec:
+  protocol: h2c
+  services:
+    - name: #@ data.values.tracing.collector.service
+      port: #@ data.values.tracing.collector.port
+#@ end
