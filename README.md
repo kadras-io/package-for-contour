@@ -108,7 +108,7 @@ Settings for the Contour component.
 | `contour.config.logFormat` | `text` | Log output format for Contour. Either `text` (default) or `json`. |
 | `contour.config.logLevel` | `info` | The Contour log level. Valid options are `info` and `debug`. |
 | `contour.config.useProxyProtocol` | `false` | Whether to enable PROXY protocol for all Envoy listeners. |
-| `contour.configMapData` | `""` | The YAML contents of the `contour` ConfigMap. See https://projectcontour.io/docs/latest/configuration/#configuration-file for more information. |
+| `contour.configMapData` | `{}` | The YAML contents of the `contour` ConfigMap. See https://projectcontour.io/docs/latest/configuration/#configuration-file for more information. |
 
 Settings for the Envoy component.
 
@@ -121,13 +121,13 @@ Settings for the Envoy component.
 | `envoy.workload.hostPorts.https` | `443` | If enabled, the host port number to expose Envoy's HTTPS listener on. |
 | `envoy.workload.hostNetwork` | `false` | Whether to enable host networking for the Envoy pods. |
 | `envoy.workload.terminationGracePeriodSeconds` | `300` | The termination grace period, in seconds, for the Envoy pods. |
-| `envoy.config.logLevel` | `info` | The Envoy log level. |
-| `envoy.service.type` | `LoadBalancer` | The type of Kubernetes service to provision for Envoy. |
+| `envoy.config.logLevel` | `info` | The Envoy log level. Valid options are `trace`, `debug`, `info`, `warning`, `warn`, `error`, `critical`, and `off`. |
+| `envoy.service.type` | `LoadBalancer` | The type of Kubernetes service to provision for Envoy. Valid options are `NodePort`, `ClusterIP`, and `LoadBalancer`. |
 | `envoy.service.loadBalancerIP` | `""` | The desired load balancer IP. If `type` is not `LoadBalancer', this field is ignored. It is up to the cloud provider whether to honor this request. If not specified, the load balancer IP will be assigned by the cloud provider. |
-| `envoy.service.externalTrafficPolicy` | `Local` | The external traffic policy for the Envoy service. |
-| `envoy.service.annotations` | `false` | Annotations to set on the Envoy service. |
-| `envoy.service.nodePorts.http` | `false` | The node port number to expose Envoy's HTTP listener on. If not specified, a node port will be auto-assigned by Kubernetes. |
-| `envoy.service.nodePorts.https` | `false` | The node port number to expose Envoy's HTTPS listener on. If not specified, a node port will be auto-assigned by Kubernetes. |
+| `envoy.service.externalTrafficPolicy` | `Local` | The external traffic policy for the Envoy service. Valid options are `Cluster` and `Local`. |
+| `envoy.service.annotations` | `{}` | Annotations to set on the Envoy service. |
+| `envoy.service.nodePorts.http` | `0` | The node port number to expose Envoy's HTTP listener on. If not specified, a node port will be auto-assigned by Kubernetes. |
+| `envoy.service.nodePorts.https` | `0` | The node port number to expose Envoy's HTTPS listener on. If not specified, a node port will be auto-assigned by Kubernetes. |
 
 TLS configuration to secure the communication between Contour and Envoy.
 
