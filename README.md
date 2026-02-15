@@ -129,6 +129,14 @@ Settings for the Envoy component.
 | `envoy.service.nodePorts.http` | `0` | The node port number to expose Envoy's HTTP listener on. If not specified, a node port will be auto-assigned by Kubernetes. |
 | `envoy.service.nodePorts.https` | `0` | The node port number to expose Envoy's HTTPS listener on. If not specified, a node port will be auto-assigned by Kubernetes. |
 
+Settings for distributed tracing.
+
+| Config | Default | Description |
+|--------|---------|-------------|
+| `tracing.enabled` | `false` | Whether to enable distributed tracing for Contour and Envoy. If `true`, an OpenTelemetry compatible tracing backend must be available to receive the traces. |
+| `tracing.collector.service` | `""` | The name of the OpenTelemetry collector service. |
+| `tracing.collector.port` | `4317` | The port on the OpenTelemetry collector service to send traces to. |
+
 TLS configuration to secure the communication between Contour and Envoy.
 
 | Config | Default | Description |

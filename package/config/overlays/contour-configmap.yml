@@ -19,9 +19,7 @@ data:
   #@overlay/match-child-defaults missing_ok=True
   contour.yaml:
     tracing:
-      extensionService:
-        nameservice: #@ data.values.namespace
-        name: "otel-collector"
+      extensionService: #@ "{}/otel-collector".format(data.values.namespace)
 #@ end
 
 #@overlay/match by=overlay.subset({"kind":"ConfigMap", "metadata":{"name":"contour"}})

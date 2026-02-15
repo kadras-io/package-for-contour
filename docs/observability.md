@@ -29,4 +29,14 @@ The Contour and Envoy components produce Prometheus metrics by default. This pac
 
 ## Traces
 
+OpenTelemetry instrumentation is provided for distributed tracing. By default, the instrumentation is disabled. Via the `tracing.*` properties, you can enable the generation of traces and configure how they are exported to an OpenTelemetry backend.
+
+```yaml
+tracing:
+  enabled: true
+  collector:
+    service: tempo.observability-system.svc.cluster.local
+    port: 4317
+```
+
 For more information, check the Contour documentation for [supporting distributed tracing with OpenTelemetry](https://projectcontour.io/docs/latest/config/tracing/).
