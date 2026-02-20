@@ -85,7 +85,10 @@ tracing:
   collector:
     #@schema/desc "The name of the OpenTelemetry collector service."
     #@schema/validation min_len=1, when=lambda _, ctx: ctx.root["tracing"]["enabled"]
-    service: ""
+    service_name: ""
+    #@schema/desc "The namespace of the OpenTelemetry collector service."
+    #@schema/validation min_len=1, when=lambda _, ctx: ctx.root["tracing"]["enabled"]
+    service_namespace: ""
     #@schema/desc "The port on the OpenTelemetry collector service to send traces to."
     #@schema/validation min=1, max=65535, when=lambda _, ctx: ctx.root["tracing"]["enabled"]
     port: 4317

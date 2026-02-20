@@ -134,7 +134,8 @@ Settings for distributed tracing.
 | Config | Default | Description |
 |--------|---------|-------------|
 | `tracing.enabled` | `false` | Whether to enable distributed tracing for Contour and Envoy. If `true`, an OpenTelemetry compatible tracing backend must be available to receive the traces. |
-| `tracing.collector.service` | `""` | The name of the OpenTelemetry collector service. |
+| `tracing.collector.service_name` | `""` | The name of the OpenTelemetry collector service. |
+| `tracing.collector.service_namespace` | `""` | The namespace of the OpenTelemetry collector service. |
 | `tracing.collector.port` | `4317` | The port on the OpenTelemetry collector service to send traces to. |
 
 TLS configuration to secure the communication between Contour and Envoy.

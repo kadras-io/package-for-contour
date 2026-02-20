@@ -1,7 +1,7 @@
 #@ load("@ytt:data", "data")
 #@ load("@ytt:overlay", "overlay")
 
-#@overlay/match by=overlay.subset({"kind":"Deployment","metadata":{"namespace":data.values.namespace}}), expects="1+"
+#@overlay/match by=overlay.subset({"kind":"Deployment","metadata":{"name":"contour"}})
 ---
 spec:
   template:
@@ -13,7 +13,7 @@ spec:
         prometheus.io/port: "metrics"
         prometheus.io/path: "/metrics"
 
-#@overlay/match by=overlay.subset({"kind":"DaemonSet","metadata":{"namespace":data.values.namespace}}), expects="0+"
+#@overlay/match by=overlay.subset({"kind":"DaemonSet","metadata":{"name":"envoy"}}), expects="0+"
 ---
 spec:
   template:

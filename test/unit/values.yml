@@ -2,5 +2,6 @@
 tracing:
   enabled: true
   collector:
-    service: my-otel-collector
+    service_name: my-otel-collector
+    service_namespace: my-otel-namespace
     port: 4321

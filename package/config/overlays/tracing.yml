@@ -7,10 +7,10 @@ apiVersion: projectcontour.io/v1alpha1
 kind: ExtensionService
 metadata:
   name: otel-collector
-  namespace: #@ data.values.namespace
+  namespace: #@ data.values.tracing.collector.service_namespace
 spec:
   protocol: h2c
   services:
-    - name: #@ data.values.tracing.collector.service
+    - name: #@ data.values.tracing.collector.service_name
       port: #@ data.values.tracing.collector.port
 #@ end
