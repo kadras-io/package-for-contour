@@ -35,7 +35,8 @@ OpenTelemetry instrumentation is provided for distributed tracing. By default, t
 tracing:
   enabled: true
   collector:
-    service: tempo.observability-system.svc.cluster.local
+    service_name: otel-collector
+    service_namespace: observability
     port: 4317
 ```
 

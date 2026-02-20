@@ -77,6 +77,11 @@ envoy:
       #@schema/desc "The node port number to expose Envoy's HTTPS listener on. If not specified, a node port will be auto-assigned by Kubernetes."
       https: 0
 
+#@schema/desc "Settings for Prometheus metrics."
+prometheus:
+  #@schema/desc "Whether to enable Prometheus annotations for automatic scraping of Contour metrics."
+  enabled: true
+
 #@schema/desc "Settings for distributed tracing."
 tracing:
   #@schema/desc "Whether to enable distributed tracing for Contour and Envoy. If `true`, an OpenTelemetry compatible tracing backend must be available to receive the traces."

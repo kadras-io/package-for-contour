@@ -129,6 +129,12 @@ Settings for the Envoy component.
 | `envoy.service.nodePorts.http` | `0` | The node port number to expose Envoy's HTTP listener on. If not specified, a node port will be auto-assigned by Kubernetes. |
 | `envoy.service.nodePorts.https` | `0` | The node port number to expose Envoy's HTTPS listener on. If not specified, a node port will be auto-assigned by Kubernetes. |
 
+Settings for Prometheus metrics.
+
+| Config | Default | Description |
+|--------|---------|-------------|
+| `prometheus.enabled` | `true` | Whether to enable Prometheus annotations for automatic scraping of Contour metrics. |
+
 Settings for distributed tracing.
 
 | Config | Default | Description |
