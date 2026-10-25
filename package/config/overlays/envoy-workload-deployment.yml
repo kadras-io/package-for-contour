@@ -1,6 +1,5 @@
 #@ load("@ytt:data", "data")
 #@ load("@ytt:overlay", "overlay")
-#@ load("/lib/contour.star", "envoy_log_level")
 
 #@ if data.values.envoy.kind == "Deployment":
 
@@ -19,6 +18,6 @@ spec:
       - name: envoy
         args:
         #@overlay/match by=overlay.subset("--log-level info")
-        - #@ "--log-level " + envoy_log_level()
+        - #@ "--log-level " + data.values.observability.logging.level
 
 #@ end

@@ -1,12 +1,13 @@
 #@ load("@ytt:data", "data")
 #@ load("@ytt:overlay", "overlay")
-#@ load("/lib/contour.star", "gateway_tls_enabled", "gateway_tls_secret_name")
 
 #! Contour is statically provisioned: it serves only the Gateway referenced in its configuration
 #! (`gateway.gatewayRef`), using the Envoy workload deployed by this package.
 #! See: https://projectcontour.io/docs/latest/config/gateway-api/#static-provisioning
 
 #@ gateway = data.values.gateway
+#@ tls_enabled = gateway.enabled and gateway.tls.issuer != ""
+#@ tls_secret_name = gateway.name + "-tls"
 
 #! =============================================
 #! CRDs
@@ -61,7 +62,7 @@ spec:
     allowedRoutes:
       namespaces:
         from: #@ gateway.allowed_routes
-  #@ if gateway_tls_enabled():
+  #@ if tls_enabled:
   #! Serves HTTPRoutes for the domain over HTTPS, with a wildcard certificate.
   - name: https
     protocol: HTTPS
@@ -71,7 +72,7 @@ spec:
       mode: Terminate
       certificateRefs:
       - kind: Secret
-        name: #@ gateway_tls_secret_name()
+        name: #@ tls_secret_name
     allowedRoutes:
       namespaces:
         from: #@ gateway.allowed_routes
@@ -94,16 +95,16 @@ spec:
 #! TLS
 #! =============================================
 
-#@ if gateway_tls_enabled():
+#@ if tls_enabled:
 
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: #@ gateway_tls_secret_name()
+  name: #@ tls_secret_name
   namespace: #@ data.values.namespace
 spec:
-  secretName: #@ gateway_tls_secret_name()
+  secretName: #@ tls_secret_name
   dnsNames:
   - #@ "*." + gateway.domain
   issuerRef:

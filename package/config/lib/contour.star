@@ -1,6 +1,5 @@
 load("@ytt:data", "data")
 load("@ytt:struct", "struct")
-load("/lib/validation.star", "hours")
 
 # ########
 # CONTOUR
@@ -54,44 +53,12 @@ def contour_config():
     config["tracing"] = {
       "extensionService": collector.namespace + "/" + tracing_extension_service_name,
       "serviceName": "contour",
-      "overallSampling": str(sampling_percentage()),
+      # A percentage, rounded to 2 decimals.
+      "overallSampling": str(int(data.values.observability.tracing.sampling_rate * 10000 + 0.5) / 100.0),
     }
   end
 
   return config
-end
-
-# ######
-# ENVOY
-# ######
-
-def envoy_log_level():
-  return data.values.observability.logging.level
-end
-
-# ####
-# TLS
-# ####
-
-def is_cert_manager():
-  return data.values.tls.internal.provider == "cert-manager"
-end
-
-def certgen_lifetime_days():
-  days = hours(data.values.tls.internal.duration) // 24
-  return days if days > 0 else 1
-end
-
-# ########
-# GATEWAY
-# ########
-
-def gateway_tls_enabled():
-  return data.values.gateway.enabled and data.values.gateway.tls.issuer != ""
-end
-
-def gateway_tls_secret_name():
-  return data.values.gateway.name + "-tls"
 end
 
 # ########
@@ -102,15 +69,7 @@ tracing_extension_service_name = "contour-tracing"
 
 # Splits an endpoint like `http://otel-collector.observability.svc:4317` into its Service coordinates.
 def tracing_collector():
-  endpoint = data.values.observability.tracing.endpoint
-  if endpoint.startswith("http://"):
-    endpoint = endpoint[len("http://"):]
-  end
-  host, port = endpoint.rsplit(":", 1)
+  host, port = data.values.observability.tracing.endpoint.split("://")[-1].rsplit(":", 1)
   labels = host.split(".")
   return struct.encode({"name": labels[0], "namespace": labels[1], "port": int(port)})
-end
-
-def sampling_percentage():
-  return int(data.values.observability.tracing.sampling_rate * 10000 + 0.5) / 100.0
 end

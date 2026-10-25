@@ -1,6 +1,6 @@
 #@ load("@ytt:data", "data")
 #@ load("@ytt:overlay", "overlay")
-#@ load("/lib/contour.star", "certgen_lifetime_days", "is_cert_manager")
+#@ load("/lib/validation.star", "hours")
 
 #! The certificates securing the gRPC connection between Contour and Envoy (xDS).
 #! Contour presents the `contourcert` certificate and Envoy the `envoycert` one, both signed by the same CA.
@@ -16,7 +16,7 @@
 #@   ]
 #@ end
 
-#@ if is_cert_manager():
+#@ if internal.provider == "cert-manager":
 
 #@ certgen_sa = overlay.subset({"kind":"ServiceAccount", "metadata":{"name":"contour-certgen"}})
 #@ certgen_rb = overlay.subset({"kind":"RoleBinding", "roleRef":{"name":"contour-certgen"}})
@@ -115,6 +115,6 @@ spec:
       - name: contour
         command:
         #@overlay/append
-        - #@ "--certificate-lifetime=" + str(certgen_lifetime_days())
+        - #@ "--certificate-lifetime=" + str(max(1, hours(internal.duration) // 24))
 
 #@ end
