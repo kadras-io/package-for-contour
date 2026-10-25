@@ -128,12 +128,9 @@ Operations:
 
 * [Running locally](docs/local.md)
 * [Configuration and ytt overlays](docs/configuration.md)
+* [Corporate proxy](docs/corporate-proxy.md)
 * [Network policies](docs/network-policies.md)
 * [Verifying the release](docs/verify-release.md)
-
-FAQ:
-
-* [Corporate proxy](docs/corporate-proxy.md)
 
 ## 🎯&nbsp; Configuration
 
