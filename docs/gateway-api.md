@@ -55,6 +55,10 @@ gateway:
 
 With `http_redirect` (enabled by default), HTTP requests for `*.<domain>` are redirected to HTTPS by the `http-redirect` listener, which takes precedence over the `http` one for those hosts. Attach the routes for the domain to the `https` listener via `sectionName: https`. To serve some of them over plain HTTP, disable `http_redirect`.
 
+## Listeners added by other controllers
+
+Some controllers add listeners to the Gateway for the certificates they manage. With the Gateway API networking layer, the [Knative Serving](https://github.com/kadras-io/package-for-knative-serving) package adds a listener named `kni-<uid>` for the certificate of each Knative Service. The package keeps those listeners when it updates the Gateway, unless it defines a listener with the same name.
+
 ## Gateway API CRDs
 
 Gateway API is not part of Kubernetes: its resources are CRDs, released separately. Contour requires the CRDs from the experimental channel, in the version it supports (Gateway API v1.3.0 for Contour 1.33). The package installs them by default.

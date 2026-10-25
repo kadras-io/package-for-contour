@@ -56,6 +56,34 @@ rebaseRules:
       namespace: #@ data.values.namespace
       name: envoy
 
+#! With Knative Serving using the Gateway API, net-gateway-api adds a listener to the Gateway for each
+#! certificate it requests (named `kni-<uid>`), which kapp would remove on the next update.
+#! Keep those listeners, as long as the package doesn't define a listener with the same name.
+#! See: https://github.com/knative-extensions/net-gateway-api
+- ytt:
+    overlayContractV1:
+      overlay.yml: |
+        #@ load("@ytt:data", "data")
+        #@ load("@ytt:overlay", "overlay")
+        #@ load("@ytt:struct", "struct")
+        #@ existing = struct.decode(data.values.existing)["spec"].get("listeners") or []
+        #@ new = [listener["name"] for listener in struct.decode(data.values.new)["spec"].get("listeners") or []]
+        #@overlay/match by=overlay.all
+        ---
+        spec:
+          listeners:
+          #@ for listener in existing:
+          #@   if listener["name"].startswith("kni-") and listener["name"] not in new:
+          #@overlay/append
+          - #@ listener
+          #@   end
+          #@ end
+  resourceMatchers:
+  - kindNamespaceNameMatcher:
+      kind: Gateway
+      namespace: #@ data.values.namespace
+      name: #@ data.values.gateway.name
+
 #! Bind change groups to resources matched by resource matchers.
 #! See more: https://carvel.dev/kapp/docs/latest/config/#changegroupbindings
 changeGroupBindings:
