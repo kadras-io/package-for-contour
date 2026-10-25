@@ -128,6 +128,7 @@ Operations:
 
 * [Running locally](docs/local.md)
 * [Configuration and ytt overlays](docs/configuration.md)
+* [Network policies](docs/network-policies.md)
 * [Verifying the release](docs/verify-release.md)
 
 FAQ:
