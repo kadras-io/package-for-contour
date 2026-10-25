@@ -19,16 +19,37 @@ waitRules:
   - apiVersionKindMatcher: {apiVersion: cert-manager.io/v1, kind: Certificate}
   - apiVersionKindMatcher: {apiVersion: cert-manager.io/v1, kind: Issuer}
 
-#! Specify which fields should be removed before diff-ing against last applied resource.
-#! See more: https://carvel.dev/kapp/docs/latest/config/#diffagainstlastappliedfieldexclusionrules
-diffAgainstLastAppliedFieldExclusionRules:
+#! Rebase rules specify how to merge the resources in the cluster with the ones being applied.
+#! See more: https://carvel.dev/kapp/docs/latest/config/#rebaserules
+rebaseRules:
 
-#! Each cloud provider will add its own custom annotations to the Envoy Service in order
-#! to configure the associated load balancer. We want to keep those annotations between
-#! upgrades, so we exclude them from the diff to prevent them being overwritten.
-- path: [metadata, annotations]
-  type: copy
-  sources: [existing]
+#! Load balancer implementations can add their own annotations to the Envoy Service, which kapp
+#! would remove on the next update. Keep the annotations that are in the cluster but were never
+#! applied by the package (according to the last applied resource stored by kapp), so that the
+#! annotations set via the package values can still be changed and removed.
+- ytt:
+    overlayContractV1:
+      overlay.yml: |
+        #@ load("@ytt:data", "data")
+        #@ load("@ytt:json", "json")
+        #@ load("@ytt:overlay", "overlay")
+        #@ load("@ytt:struct", "struct")
+        #@ existing = struct.decode(data.values.existing)["metadata"].get("annotations") or {}
+        #@ new = struct.decode(data.values.new)["metadata"].get("annotations") or {}
+        #@ original = existing.get("kapp.k14s.io/original")
+        #@ applied = (json.decode(original)["metadata"].get("annotations") or {}) if original else {}
+        #@overlay/match by=overlay.all
+        ---
+        metadata:
+          #@overlay/match missing_ok=True
+          annotations:
+            #@ for k in existing:
+            #@   if k not in applied and k not in new and not k.startswith("kapp.k14s.io/"):
+            #@overlay/match missing_ok=True
+            #@yaml/text-templated-strings
+            (@= k @): #@ existing[k]
+            #@   end
+            #@ end
   resourceMatchers:
   - kindNamespaceNameMatcher:
       kind: Service
@@ -36,7 +57,7 @@ diffAgainstLastAppliedFieldExclusionRules:
       name: envoy
 
 #! Bind change groups to resources matched by resource matchers.
-#! See more: https://carvel.dev/kapp/docs/v0.62.x/config/#changegroupbindings
+#! See more: https://carvel.dev/kapp/docs/latest/config/#changegroupbindings
 changeGroupBindings:
 
 - name: change-groups.kapp.k14s.io/envoy-daemonset
@@ -53,9 +74,8 @@ changeGroupBindings:
       namespace: #@ data.values.namespace
       name: envoy
 
-
-#! Bind change groups to resources matched by resource matchers.
-#! See more: https://carvel.dev/kapp/docs/v0.62.x/config/#changerulebindings
+#! Bind change rules to resources matched by resource matchers.
+#! See more: https://carvel.dev/kapp/docs/latest/config/#changerulebindings
 changeRuleBindings:
 
 #! Ensure zero-downtime when switching the Envoy workload

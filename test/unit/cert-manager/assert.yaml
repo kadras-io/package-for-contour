@@ -1,0 +1,59 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: contour-bootstrap-issuer
+  namespace: projectcontour
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: contour-root-ca
+  namespace: projectcontour
+spec:
+  isCA: true
+  duration: 2160h
+  renewBefore: 720h
+  issuerRef:
+    name: contour-bootstrap-issuer
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: contour-ca-issuer
+  namespace: projectcontour
+spec:
+  ca:
+    secretName: contour-root-ca
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: contour-cert
+  namespace: projectcontour
+spec:
+  secretName: contourcert
+  duration: 2160h
+  renewBefore: 720h
+  usages:
+    - server auth
+  dnsNames:
+    - contour
+    - contour.projectcontour
+    - contour.projectcontour.svc
+    - contour.projectcontour.svc.cluster.local
+  issuerRef:
+    name: contour-ca-issuer
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: envoy-cert
+  namespace: projectcontour
+spec:
+  secretName: envoycert
+  usages:
+    - client auth
+  issuerRef:
+    name: contour-ca-issuer

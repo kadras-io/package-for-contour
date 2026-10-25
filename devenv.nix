@@ -27,7 +27,7 @@
     pkgs.jq
     pkgs.podman
     pkgs.yamllint
-    pkgs.yq
+    pkgs.yq-go
   ];
 
   # https://devenv.sh/languages/

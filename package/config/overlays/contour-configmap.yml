@@ -1,32 +1,39 @@
 #@ load("@ytt:data", "data")
 #@ load("@ytt:overlay", "overlay")
 #@ load("@ytt:yaml", "yaml")
+#@ load("/lib/contour.star", "contour_config")
 
 #! 1. Decode/parse the contents of the `contour.yaml` key within the ConfigMap.
-#! 2. Overlay the decoded/parsed YAML with the custom configuration.
-#! 3. Re-encode the overlayed result to a string.
+#! 2. Overlay the decoded/parsed YAML with the configuration computed from the package values.
+#! 3. Overlay the result with `contour.config`, so that it takes precedence.
+#! 4. Re-encode the overlayed result to a string.
+#!
+#! Contour only reads its configuration at startup. The ConfigMap is versioned by kapp,
+#! so that a change creates a new ConfigMap and rolls out the Contour Deployment referencing it.
+#! See: https://carvel.dev/kapp/docs/latest/diff/#versioned-resources
 
 #@overlay/match by=overlay.subset({"kind":"ConfigMap", "metadata":{"name":"contour"}})
 ---
+metadata:
+  #@overlay/match missing_ok=True
+  annotations:
+    #@overlay/match missing_ok=True
+    kapp.k14s.io/versioned: ""
 data:
   #@overlay/replace via=lambda left, _: yaml.decode(left)
   contour.yaml:
 
-#@ if data.values.tracing.enabled:
 #@overlay/match by=overlay.subset({"kind":"ConfigMap", "metadata":{"name":"contour"}})
 ---
 data:
   #@overlay/match-child-defaults missing_ok=True
-  contour.yaml:
-    tracing:
-      extensionService: #@ "{}/otel-collector".format(data.values.tracing.collector.service_namespace)
-#@ end
+  contour.yaml: #@ contour_config()
 
 #@overlay/match by=overlay.subset({"kind":"ConfigMap", "metadata":{"name":"contour"}})
 ---
 data:
   #@overlay/match-child-defaults missing_ok=True
-  contour.yaml: #@ data.values.contour.configMapData
+  contour.yaml: #@ data.values.contour.config
 
 #@overlay/match by=overlay.subset({"kind":"ConfigMap", "metadata":{"name":"contour"}})
 ---

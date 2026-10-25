@@ -6,4 +6,6 @@ commands:
       kapp delete -a kuard -y
       cd ../../../package && \
       kubectl config set-context --current --namespace=tests && \
-      ytt -f ../test/integration/cert-manager/config -f package-resources.yml | kctrl dev -f- --local --delete -y
+      ytt -f ../test/integration/cert-manager/config -f package-resources.yml \
+        -f ../docs/examples/local-kind-values.yml --file-mark 'local-kind-values.yml:type=data' \
+        | kctrl dev -f- --local --delete -y

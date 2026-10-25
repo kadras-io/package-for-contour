@@ -1,0 +1,5 @@
+# expected: a value <= 1
+---
+observability:
+  tracing:
+    sampling_rate: 1.5

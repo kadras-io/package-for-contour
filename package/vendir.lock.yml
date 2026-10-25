@@ -6,6 +6,10 @@ directories:
       sha: 81c4e28c38177ed1f3a3265389a86f8926c332cb
       tags:
       - v1.33.7
-    path: .
+    path: contour
+  - githubRelease:
+      tag: v1.3.0
+      url: https://api.github.com/repos/kubernetes-sigs/gateway-api/releases/214381245
+    path: gateway-api
   path: config/upstream
 kind: LockConfig

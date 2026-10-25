@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: DaemonSet
+---
+# No cert-manager resources with the certgen provider.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+---
+# No HTTPS redirect without TLS on the Gateway.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+---
+# No tracing.
+apiVersion: projectcontour.io/v1alpha1
+kind: ExtensionService

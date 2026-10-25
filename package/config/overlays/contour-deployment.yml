@@ -1,6 +1,6 @@
 #@ load("@ytt:data", "data")
 #@ load("@ytt:overlay", "overlay")
-#@ load("/contour.star", "get_contour_deployment_args")
+#@ load("/lib/contour.star", "contour_args")
 
 #! Resource requests and limits for Contour can vary a lot depending on the scenario.
 #! Reasonable resource requests are configured as a starting point.
@@ -17,7 +17,7 @@ spec:
       #@overlay/match by="name"
       - name: contour
         #@overlay/replace
-        args: #@ get_contour_deployment_args()
+        args: #@ contour_args()
         #@overlay/match missing_ok=True
         resources:
           requests:

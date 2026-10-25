@@ -25,4 +25,4 @@ spec:
           initialDelaySeconds: 15
           periodSeconds: 5
           failureThreshold: 6
-      terminationGracePeriodSeconds: #@ int(data.values.envoy.workload.terminationGracePeriodSeconds)
+      terminationGracePeriodSeconds: #@ data.values.envoy.termination_grace_period_seconds

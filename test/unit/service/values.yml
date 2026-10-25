@@ -1,0 +1,10 @@
+---
+envoy:
+  service:
+    type: NodePort
+    external_traffic_policy: Cluster
+    annotations:
+      metallb.io/loadBalancerIPs: 192.168.1.10
+    node_ports:
+      http: 30080
+      https: 30443

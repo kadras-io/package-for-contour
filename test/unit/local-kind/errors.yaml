@@ -1,0 +1,8 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: envoy
+---
+# No PodDisruptionBudgets with a single Contour replica and Envoy as a DaemonSet.
+apiVersion: policy/v1
+kind: PodDisruptionBudget

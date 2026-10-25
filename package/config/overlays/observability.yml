@@ -1,0 +1,63 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
+#@ load("/lib/contour.star", "tracing_collector", "tracing_extension_service_name")
+
+#! =============================================
+#! Metrics
+#! =============================================
+
+#! Contour exposes metrics on port 8000 and Envoy on port 8002, both in the Prometheus format.
+
+#@ if data.values.observability.metrics.enabled:
+
+#@overlay/match by=overlay.subset({"kind":"Deployment", "metadata":{"name":"contour"}})
+---
+spec:
+  template:
+    #@overlay/match-child-defaults missing_ok=True
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/scheme: "http"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+
+#@ daemonset = overlay.subset({"kind":"DaemonSet", "metadata":{"name":"envoy"}})
+#@ deployment = overlay.subset({"kind":"Deployment", "metadata":{"name":"envoy"}})
+
+#@overlay/match by=overlay.or_op(daemonset, deployment)
+---
+spec:
+  template:
+    #@overlay/match-child-defaults missing_ok=True
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/scheme: "http"
+        prometheus.io/port: "8002"
+        prometheus.io/path: "/stats/prometheus"
+
+#@ end
+
+#! =============================================
+#! Tracing
+#! =============================================
+
+#! Envoy exports traces to an OpenTelemetry collector registered as an ExtensionService.
+#! An ExtensionService references Services in its own namespace, so it's created in the collector's namespace.
+#! See: https://projectcontour.io/docs/latest/config/tracing
+
+#@ if data.values.observability.tracing.enabled:
+#@ collector = tracing_collector()
+---
+apiVersion: projectcontour.io/v1alpha1
+kind: ExtensionService
+metadata:
+  name: #@ tracing_extension_service_name
+  namespace: #@ collector.namespace
+spec:
+  protocol: h2c
+  services:
+  - name: #@ collector.name
+    port: #@ collector.port
+#@ end

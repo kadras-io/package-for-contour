@@ -1,110 +1,157 @@
+#@ load("/lib/validation.star", "hours", "is_dns_name", "is_hours", "is_in_cluster_otlp_endpoint")
+
+#@ def gateway_tls_complete(values):
+#@   gateway = values["gateway"]
+#@   return bool(gateway["domain"]) == bool(gateway["tls"]["issuer"])
+#@ end
+
+#@ def renewal_before_expiry(values):
+#@   internal = values["tls"]["internal"]
+#@   if not is_hours(internal["duration"]) or not is_hours(internal["renew_before"]):
+#@     return True
+#@   end
+#@   return hours(internal["renew_before"]) < hours(internal["duration"])
+#@ end
+
+#@ def host_ports_on_daemonset(values):
+#@   envoy = values["envoy"]
+#@   return not envoy["host_ports"]["enabled"] or envoy["kind"] == "DaemonSet"
+#@ end
+
 #@data/values-schema
+#@schema/validation ("`gateway.domain` and `gateway.tls.issuer` to be set together", gateway_tls_complete), ("`tls.internal.renew_before` to be shorter than `tls.internal.duration`", renewal_before_expiry), ("`envoy.host_ports.enabled` to be used with `envoy.kind: DaemonSet`", host_ports_on_daemonset)
 ---
 
 #@schema/desc "The namespace in which to deploy Contour and Envoy."
-#@schema/validation min_len=1
+#@schema/validation ("a valid DNS label", is_dns_name), min_len=1, max_len=63
 namespace: projectcontour
 
-#@schema/desc "Settings for the Contour component."
+#! =============================================
+#! Gateway
+#! =============================================
+
+#@schema/desc "The default Gateway that Contour serves via the Kubernetes Gateway API. HTTPProxy and Ingress resources keep working alongside the routes attached to it. See https://projectcontour.io/docs/latest/config/gateway-api."
+gateway:
+  #@schema/desc "Whether to create the `contour` GatewayClass and the default Gateway, and configure Contour to serve it."
+  enabled: true
+  #@schema/desc "Whether to install the CRDs from the experimental channel of the Gateway API, required by the Gateway. Set it to `false` if the Gateway API CRDs are already managed by something else in the cluster."
+  install_crds: true
+  #@schema/desc "The name of the Gateway, created in the package namespace."
+  #@schema/validation ("a valid DNS name", is_dns_name), min_len=1
+  name: contour
+  #@schema/desc "The namespaces from which routes can attach to the Gateway. `All` allows any namespace, `Same` only the package namespace."
+  #@schema/validation one_of=["All", "Same"]
+  allowed_routes: All
+  #@schema/desc "The domain served over HTTPS by the Gateway via a wildcard certificate (`*.<domain>`). It requires `tls.issuer`."
+  #@schema/examples ("Custom domain", "example.com"), ("Local development with sslip.io", "127.0.0.1.sslip.io")
+  #@schema/validation ("a valid DNS name", lambda v: v == "" or is_dns_name(v))
+  domain: ""
+  #@schema/desc "Settings for the HTTPS listener of the Gateway."
+  tls:
+    #@schema/desc "The name of the cert-manager ClusterIssuer that issues the wildcard certificate for `domain`. For ACME issuers, wildcard certificates require a DNS-01 challenge."
+    #@schema/examples ("Kadras private CA", "kadras-ca-issuer")
+    issuer: ""
+    #@schema/desc "Whether to redirect HTTP requests for `*.<domain>` to HTTPS."
+    http_redirect: true
+
+#! =============================================
+#! Components
+#! =============================================
+
+#@schema/desc "Settings for Contour, the control plane."
 contour:
-  #@schema/desc "The number of Contour replicas. In order to enable high availability, it should be greater than 1."
+  #@schema/desc "The number of Contour replicas. Additional replicas are standby via leader election. With more than 1 replica, a PodDisruptionBudget is created."
   #@schema/validation min=1
   replicas: 2
-  #@schema/desc "Configuration for the Contour Deployment."
-  config:
-    #@schema/desc "Log output format for Contour. Either `text` (default) or `json`."
-    #@schema/validation one_of=["json", "text"]
-    logFormat: text
-    #@schema/desc "The Contour log level. Valid options are `info` and `debug`."
-    #@schema/validation one_of=["info", "debug"]
-    logLevel: info
-    #@schema/desc "Whether to enable PROXY protocol for all Envoy listeners."
-    useProxyProtocol: false
-  #@schema/desc "The YAML contents of the `contour` ConfigMap. See https://projectcontour.io/docs/latest/configuration/#configuration-file for more information."
+  #@schema/desc "Contour configuration, merged on top of the one computed by the package. See https://projectcontour.io/docs/latest/configuration/#configuration-file."
   #@schema/type any=True
-  configMapData: {}
+  config: {}
 
-#@schema/desc "Settings for the Envoy component."
+#@schema/desc "Settings for Envoy, the data plane."
 envoy:
-  #@schema/desc "Envoy workload settings."
-  workload:
-    #@schema/desc "The type of Kubernetes workload that Envoy is deployed as. Options are `Deployment` or `DaemonSet`. If not specified, it defaults to `DaemonSet`."
-    #@schema/validation one_of=["Deployment", "DaemonSet"]
-    type: DaemonSet
-    #@schema/desc "The number of Envoy replicas to deploy when `type` is set to `Deployment`."
-    #@schema/validation min=1, when=lambda _, ctx: ctx.parent["type"] == "Deployment"
-    replicas: 2
-    #@schema/desc "Host port settings for the Envoy pods."
-    hostPorts:
-      #@schema/desc "Whether to enable host ports. If false, `http` & `https` are ignored."
-      enabled: true
-      #@schema/desc "If enabled, the host port number to expose Envoy's HTTP listener on."
-      #@schema/validation min=1, when=lambda _, ctx: ctx.parent["enabled"]
-      http: 80
-      #@schema/desc "If enabled, the host port number to expose Envoy's HTTPS listener on."
-      #@schema/validation min=1, when=lambda _, ctx: ctx.parent["enabled"]
-      https: 443
-    #@schema/desc "Whether to enable host networking for the Envoy pods."
-    hostNetwork: false
-    #@schema/desc "The termination grace period, in seconds, for the Envoy pods."
-    #@schema/validation min=30
-    terminationGracePeriodSeconds: 300
-
-  #@schema/desc "Configuration for the Envoy workload."
-  config:
-    #@schema/desc "The Envoy log level."
-    #@schema/validation one_of=["trace", "debug", "info", "warning", "warn", "error", "critical", "off"]
-    logLevel: info
-
-  #@schema/desc "Envoy service settings."
+  #@schema/desc "The Kubernetes workload Envoy runs as."
+  #@schema/validation one_of=["Deployment", "DaemonSet"]
+  kind: Deployment
+  #@schema/desc "The number of Envoy replicas when `kind` is `Deployment`. With more than 1 replica, a PodDisruptionBudget is created."
+  #@schema/validation min=1, when=lambda _, ctx: ctx.parent["kind"] == "Deployment"
+  replicas: 2
+  #@schema/desc "How long to wait, in seconds, for Envoy to drain open connections before terminating."
+  #@schema/validation min=30
+  termination_grace_period_seconds: 300
+  #@schema/desc "Settings for the Service exposing Envoy."
   service:
-    #@schema/desc "The type of Kubernetes service to provision for Envoy."
-    #@schema/validation one_of=["NodePort", "ClusterIP", "LoadBalancer"]
-    type: "LoadBalancer"
-    #@schema/desc "The desired load balancer IP. If `type` is not `LoadBalancer', this field is ignored. It is up to the cloud provider whether to honor this request. If not specified, the load balancer IP will be assigned by the cloud provider."
-    loadBalancerIP: ""
-    #@schema/desc "The external traffic policy for the Envoy service."
+    #@schema/desc "The type of the Service."
+    #@schema/validation one_of=["LoadBalancer", "NodePort", "ClusterIP"]
+    type: LoadBalancer
+    #@schema/desc "The external traffic policy of the Service, when `type` is `LoadBalancer` or `NodePort`. `Local` preserves the client source IP."
     #@schema/validation one_of=["Cluster", "Local"]
-    externalTrafficPolicy: "Local"
-    #@schema/desc "Annotations to set on the Envoy service."
+    external_traffic_policy: Local
+    #@schema/desc "Annotations for the Service, for example to configure the load balancer implementation."
     #@schema/type any=True
-    #@schema/nullable
     annotations: {}
-    #@schema/desc "NodePort settings for the Envoy service. If type is not `NodePort` or `LoadBalancer`, these settings are ignored."
-    nodePorts:
-      #@schema/desc "The node port number to expose Envoy's HTTP listener on. If not specified, a node port will be auto-assigned by Kubernetes."
+    #@schema/desc "The node ports of the Service, when `type` is `LoadBalancer` or `NodePort`. If 0, Kubernetes assigns one."
+    node_ports:
+      #@schema/desc "The node port for HTTP traffic."
+      #@schema/validation min=0, max=65535
       http: 0
-      #@schema/desc "The node port number to expose Envoy's HTTPS listener on. If not specified, a node port will be auto-assigned by Kubernetes."
+      #@schema/desc "The node port for HTTPS traffic."
+      #@schema/validation min=0, max=65535
       https: 0
+  #@schema/desc "Settings for exposing Envoy directly on the ports of the nodes it runs on. Requires `kind: DaemonSet`, since only one Envoy can bind the ports on each node. Typically used for local clusters."
+  host_ports:
+    #@schema/desc "Whether to expose Envoy on host ports."
+    enabled: false
+    #@schema/desc "The host port for HTTP traffic."
+    #@schema/validation min=1, max=65535
+    http: 80
+    #@schema/desc "The host port for HTTPS traffic."
+    #@schema/validation min=1, max=65535
+    https: 443
+  #@schema/desc "Whether Envoy expects the PROXY protocol on all its listeners, as sent by some load balancers to preserve the client source IP."
+  proxy_protocol: false
 
-#@schema/desc "Settings for Prometheus metrics."
-prometheus:
-  #@schema/desc "Whether to enable Prometheus annotations for automatic scraping of Contour metrics."
-  enabled: true
+#! =============================================
+#! TLS
+#! =============================================
 
-#@schema/desc "Settings for distributed tracing."
-tracing:
-  #@schema/desc "Whether to enable distributed tracing for Contour and Envoy. If `true`, an OpenTelemetry compatible tracing backend must be available to receive the traces."
-  enabled: false
-  #@schema/desc "The OpenTelemetry collector service to send traces to. If `enabled` is false, this field is ignored."
-  collector:
-    #@schema/desc "The name of the OpenTelemetry collector service."
-    #@schema/validation min_len=1, when=lambda _, ctx: ctx.root["tracing"]["enabled"]
-    service_name: ""
-    #@schema/desc "The namespace of the OpenTelemetry collector service."
-    #@schema/validation min_len=1, when=lambda _, ctx: ctx.root["tracing"]["enabled"]
-    service_namespace: ""
-    #@schema/desc "The port on the OpenTelemetry collector service to send traces to."
-    #@schema/validation min=1, max=65535, when=lambda _, ctx: ctx.root["tracing"]["enabled"]
-    port: 4317
+#@schema/desc "Settings for TLS. Envoy listeners only accept TLS 1.3 connections. To allow TLS 1.2, set `tls.minimum-protocol-version` in `contour.config`."
+tls:
+  #@schema/desc "The certificates securing the connection between Contour and Envoy."
+  internal:
+    #@schema/desc "How the certificates are provisioned. `certgen` generates them with a Job at every installation and upgrade, and doesn't renew them in between. `cert-manager` issues and renews them via cert-manager, which must be installed in the cluster."
+    #@schema/validation one_of=["certgen", "cert-manager"]
+    provider: certgen
+    #@schema/desc "How long the certificates are valid, in hours."
+    #@schema/validation ("a number of hours, like `8760h`", is_hours)
+    duration: 8760h
+    #@schema/desc "How long before expiry the certificates are renewed, in hours. Only for the `cert-manager` provider."
+    #@schema/validation ("a number of hours, like `360h`", is_hours)
+    renew_before: 360h
 
-#@schema/desc "TLS configuration to secure the communication between Contour and Envoy."
-certificates:
-  #@schema/desc "Whether to use cert-manager to provision TLS certificates for securing the communication between Contour and Envoy. If `false`, the `contour-certgen` Job will be used to provision certificates. If `true`, cert-manager must be installed in the cluster. See: https://github.com/kadras-io/package-for-cert-manager."
-  useCertManager: false
-  #@schema/desc "If using cert-manager, how long the certificates should be valid for. If `useCertManager` is false, this field is ignored."
-  #@schema/validation min_len=2, when=lambda _, ctx: ctx.parent["useCertManager"]
-  duration: 8760h
-  #@schema/desc "If using cert-manager, how long before expiration the certificates should be renewed. If `useCertManager` is false, this field is ignored."
-  #@schema/validation min_len=2, when=lambda _, ctx: ctx.parent["useCertManager"]
-  renewBefore: 360h
+#! =============================================
+#! Observability
+#! =============================================
+
+#@schema/desc "Settings for logs, metrics, and traces."
+observability:
+  logging:
+    #@schema/desc "The log level for Contour and Envoy. Contour only distinguishes between `debug` and the rest."
+    #@schema/validation one_of=["debug", "info", "warn", "error"]
+    level: info
+    #@schema/desc "The format of the Contour logs and of the Envoy access logs."
+    #@schema/validation one_of=["text", "json"]
+    format: text
+  metrics:
+    #@schema/desc "Whether to annotate the Contour and Envoy Pods for Prometheus scraping."
+    enabled: true
+  tracing:
+    #@schema/desc "Whether to export traces from Envoy."
+    enabled: false
+    #@schema/desc "The OTLP/gRPC endpoint of an in-cluster OpenTelemetry collector, in the form `[http://]<service>.<namespace>[.svc[.cluster.local]]:<port>`."
+    #@schema/examples ("OpenTelemetry collector", "http://otel-collector.observability.svc:4317")
+    #@schema/validation ("an in-cluster OTLP/gRPC endpoint like `http://<service>.<namespace>.svc:4317`", is_in_cluster_otlp_endpoint), when=lambda _, ctx: ctx.parent["enabled"]
+    endpoint: ""
+    #@schema/desc "The fraction of requests to trace, from 0 (never) to 1 (always)."
+    #@schema/validation min=0.0, max=1.0
+    sampling_rate: 1.0
+

@@ -1,43 +1,44 @@
-# Configuring Observability
-
-Monitor and observe the operation of Contour using logs and metrics.
+# Observability
 
 ## Logs
 
-Log configuration for the Contour component can be customized as follows.
+The log level and format apply to both Contour and Envoy.
 
 ```yaml
-contour:
-  config:
-    logFormat: text
-    logLevel: info
+observability:
+  logging:
+    level: info
+    format: json
 ```
 
-You can also customize logging for the Envoy component.
-
-```yaml
-envoy:
-  config:
-    logLevel: info
-```
-
-Structured JSON logging can be configured for the Envoy access logs. Check the documentation for [access logs](https://projectcontour.io/docs/latest/config/access-logging/) and [structured logging](https://projectcontour.io/docs/latest/guides/structured-logs/) for more information.
+* `level` is one of `debug`, `info`, `warn`, `error`. Envoy uses it as is, while Contour only distinguishes between `debug` and the rest.
+* `format` is one of `text` and `json`. It applies to the Contour logs and to the Envoy [access logs](https://projectcontour.io/docs/latest/config/access-logging/). To customize the access log fields, use `contour.config` (see [configuration.md](configuration.md)).
 
 ## Metrics
 
-The Contour and Envoy components produce Prometheus metrics by default. This package comes pre-configured with the necessary annotations to let Prometheus scrape metrics automatically from all its components. Check the documentation for [collecting metrics with Prometheus](https://projectcontour.io/docs/latest/guides/prometheus/).
+Contour and Envoy expose metrics in the Prometheus format, on port 8000 (`/metrics`) and 8002 (`/stats/prometheus`) respectively. By default, their Pods are annotated for Prometheus scraping (`prometheus.io/scrape`, `prometheus.io/port`, `prometheus.io/path`). To remove the annotations:
+
+```yaml
+observability:
+  metrics:
+    enabled: false
+```
+
+See [collecting metrics with Prometheus](https://projectcontour.io/docs/latest/guides/prometheus/).
 
 ## Traces
 
-OpenTelemetry instrumentation is provided for distributed tracing. By default, the instrumentation is disabled. Via the `tracing.*` properties, you can enable the generation of traces and configure how they are exported to an OpenTelemetry backend.
+Envoy can export traces to an OpenTelemetry collector via OTLP/gRPC, for example one deployed with the [OpenTelemetry Operator package](https://github.com/kadras-io/package-for-opentelemetry-operator).
 
 ```yaml
-tracing:
-  enabled: true
-  collector:
-    service_name: otel-collector
-    service_namespace: observability
-    port: 4317
+observability:
+  tracing:
+    enabled: true
+    endpoint: http://otel-collector.observability.svc:4317
+    sampling_rate: 0.1
 ```
 
-For more information, check the Contour documentation for [supporting distributed tracing with OpenTelemetry](https://projectcontour.io/docs/latest/config/tracing/).
+* `endpoint` must point to an in-cluster Service, in the form `[http://]<service>.<namespace>[.svc[.cluster.local]]:<port>`. Contour reaches the collector through an `ExtensionService` named `contour-tracing`, which the package creates in the namespace of the collector. That namespace must exist before installing the package.
+* `sampling_rate` is the fraction of requests to trace, from 0 to 1.
+
+See [tracing support](https://projectcontour.io/docs/latest/config/tracing/).

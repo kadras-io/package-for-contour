@@ -1,0 +1,6 @@
+# expected: `envoy.host_ports.enabled` to be used with `envoy.kind: DaemonSet`
+---
+envoy:
+  kind: Deployment
+  host_ports:
+    enabled: true

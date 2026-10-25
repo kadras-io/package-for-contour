@@ -1,0 +1,12 @@
+#! Values for running Contour on a local kind cluster.
+#! Envoy runs on every worker node and listens on the host ports 80 and 443,
+#! which kind maps to your machine via `extraPortMappings`. See docs/local.md.
+---
+contour:
+  replicas: 1
+envoy:
+  kind: DaemonSet
+  host_ports:
+    enabled: true
+  service:
+    type: ClusterIP

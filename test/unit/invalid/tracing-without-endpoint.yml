@@ -1,0 +1,5 @@
+# expected: an in-cluster OTLP/gRPC endpoint
+---
+observability:
+  tracing:
+    enabled: true

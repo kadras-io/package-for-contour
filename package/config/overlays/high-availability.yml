@@ -1,0 +1,37 @@
+#@ load("@ytt:data", "data")
+
+#! Contour and Envoy are already spread across nodes via pod anti-affinity rules defined upstream.
+#! With more than one replica, a PodDisruptionBudget keeps at least one available during voluntary disruptions.
+#! When Envoy runs as a DaemonSet, its rolling update strategy (`maxUnavailable: 10%`) plays the same role.
+
+#@ if data.values.contour.replicas > 1:
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: contour
+  namespace: #@ data.values.namespace
+  labels:
+    app: contour
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: contour
+#@ end
+
+#@ if data.values.envoy.kind == "Deployment" and data.values.envoy.replicas > 1:
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: envoy
+  namespace: #@ data.values.namespace
+  labels:
+    app: envoy
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: envoy
+#@ end

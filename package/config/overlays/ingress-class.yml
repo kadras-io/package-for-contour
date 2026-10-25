@@ -1,0 +1,14 @@
+#! Without the `--ingress-class-name` flag, Contour serves the Ingress and HTTPProxy resources
+#! with the `contour` class or with no class at all. The IngressClass makes the class discoverable,
+#! and it's the cluster default so that new Ingress resources without a class are assigned to it.
+#! See: https://projectcontour.io/docs/latest/config/ingress/#ingressclass-and-ingressclass-name
+
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: contour
+  annotations:
+    ingressclass.kubernetes.io/is-default-class: "true"
+spec:
+  controller: projectcontour.io/contour

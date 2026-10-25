@@ -1,0 +1,90 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kuard
+  name: kuard
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: kuard
+  template:
+    metadata:
+      labels:
+        app: kuard
+    spec:
+      containers:
+      - image: ghcr.io/knative/helloworld-go:latest
+        name: kuard
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kuard
+  name: kuard
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: kuard
+  sessionAffinity: None
+  type: ClusterIP
+# Served via the Ingress API.
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kuard
+  labels:
+    app: kuard
+spec:
+  rules:
+  - host: ingress.kuard.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: kuard
+            port:
+              number: 80
+# Served via HTTPProxy.
+---
+apiVersion: projectcontour.io/v1
+kind: HTTPProxy
+metadata:
+  name: kuard
+  labels:
+    app: kuard
+spec:
+  virtualhost:
+    fqdn: httpproxy.kuard.local
+  routes:
+  - services:
+    - name: kuard
+      port: 80
+# Served via the Gateway API, through the same Envoy listener.
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: kuard
+  labels:
+    app: kuard
+spec:
+  parentRefs:
+  - name: contour
+    namespace: projectcontour
+    sectionName: http
+  hostnames:
+  - gateway.kuard.local
+  rules:
+  - backendRefs:
+    - name: kuard
+      port: 80

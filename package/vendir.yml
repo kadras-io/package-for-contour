@@ -1,14 +1,23 @@
 apiVersion: vendir.k14s.io/v1alpha1
+kind: Config
+minimumRequiredVersion: 0.32.0
 directories:
-- contents:
-  - git:
-      ref: v1.33.7
+- path: config/upstream
+  contents:
+  - path: contour
+    git:
       url: https://github.com/projectcontour/contour
+      ref: v1.33.7
     includePaths:
     - examples/render/contour.yaml
     - examples/deployment/03-envoy-deployment.yaml
     newRootPath: examples
-    path: .
-  path: config/upstream
-kind: Config
-minimumRequiredVersion: 0.32.0
+  #! Contour static provisioning requires the experimental channel of the Gateway API CRDs,
+  #! in the version listed for this Contour release in https://github.com/projectcontour/contour/blob/main/versions.yaml.
+  - path: gateway-api
+    githubRelease:
+      slug: kubernetes-sigs/gateway-api
+      tag: v1.3.0
+      disableAutoChecksumValidation: true
+      assetNames:
+      - experimental-install.yaml

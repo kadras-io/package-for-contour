@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: contour
+  namespace: projectcontour
+data:
+  (parse_yaml("contour.yaml")):
+    accesslog-format: json
+    tracing:
+      extensionService: observability/contour-tracing
+      serviceName: contour
+      overallSampling: "25"
+---
+apiVersion: projectcontour.io/v1alpha1
+kind: ExtensionService
+metadata:
+  name: contour-tracing
+  namespace: observability
+spec:
+  protocol: h2c
+  services:
+    - name: otel-collector
+      port: 4317
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: contour
+  namespace: projectcontour
+spec:
+  template:
+    spec:
+      (containers[?name == 'contour'] | [0]):
+        (contains(args, '--debug')): true
+        (contains(args, '--log-format=json')): true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: envoy
+  namespace: projectcontour
+spec:
+  template:
+    spec:
+      (containers[?name == 'envoy'] | [0]):
+        (contains(args, '--log-level debug')): true

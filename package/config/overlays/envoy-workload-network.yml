@@ -1,6 +1,8 @@
 #@ load("@ytt:data", "data")
 #@ load("@ytt:overlay", "overlay")
-#@ load("/contour.star", "get_envoy_container_port_http", "get_envoy_container_port_https")
+
+#! Envoy listens on 8080 (HTTP) and 8443 (HTTPS), also when serving a Gateway,
+#! since Contour maps the Gateway listener ports 80 and 443 to those container ports.
 
 #@ daemonset = overlay.subset({"kind":"DaemonSet", "metadata":{"name":"envoy"}})
 #@ deployment = overlay.subset({"kind":"Deployment", "metadata":{"name":"envoy"}})
@@ -16,25 +18,17 @@ spec:
         ports:
         #@overlay/match by=overlay.subset({"name":"http"})
         -
-          containerPort: #@ get_envoy_container_port_http()
-          #@ if data.values.envoy.workload.hostPorts.enabled:
-          hostPort: #@ data.values.envoy.workload.hostPorts.http
+          #@ if data.values.envoy.host_ports.enabled:
+          hostPort: #@ data.values.envoy.host_ports.http
           #@ else:
           #@overlay/remove
-          hostPort: 80
+          hostPort:
           #@ end
         #@overlay/match by=overlay.subset({"name":"https"})
         -
-          containerPort: #@ get_envoy_container_port_https()
-          #@ if data.values.envoy.workload.hostPorts.enabled:
-          hostPort: #@ data.values.envoy.workload.hostPorts.https
+          #@ if data.values.envoy.host_ports.enabled:
+          hostPort: #@ data.values.envoy.host_ports.https
           #@ else:
           #@overlay/remove
-          hostPort: 443
+          hostPort:
           #@ end
-      #@ if data.values.envoy.workload.hostNetwork:
-      #@overlay/match missing_ok=True
-      hostNetwork: true
-      #@overlay/match missing_ok=True
-      dnsPolicy: ClusterFirstWithHostNet
-      #@ end

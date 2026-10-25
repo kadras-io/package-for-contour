@@ -6,8 +6,10 @@ metadata:
   namespace: tests
 stringData:
   values.yaml: |
-    envoy:
-      service:
-        type: NodePort
-    certificates:
-      useCertManager: true
+    gateway:
+      domain: 127.0.0.1.sslip.io
+      tls:
+        issuer: kadras-ca-issuer
+    tls:
+      internal:
+        provider: cert-manager

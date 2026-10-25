@@ -1,0 +1,22 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
+
+#! The local preset documented in docs/local.md is applied first, then the values of the scenario.
+
+#@overlay/match by=overlay.subset({"metadata":{"name":"contour"}, "kind":"PackageInstall"})
+---
+spec:
+  #@overlay/match missing_ok=True
+  values:
+    - secretRef:
+        name: contour-local-values
+    - secretRef:
+        name: contour-values
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: contour-local-values
+  namespace: tests
+stringData:
+  values.yaml: #@ data.read("local-kind-values.yml")

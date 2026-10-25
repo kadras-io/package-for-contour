@@ -19,3 +19,14 @@ status:
   conditions:
   - status: "True"
     type: Ready
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: contour-tls
+  namespace: projectcontour
+status:
+  conditions:
+  - status: "True"
+    type: Ready

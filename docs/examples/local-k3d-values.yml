@@ -1,0 +1,8 @@
+#! Values for running Contour on a local k3d cluster.
+#! The k3s service load balancer exposes the Envoy LoadBalancer Service
+#! on the ports 80 and 443 of the k3d load balancer. See docs/local.md.
+---
+contour:
+  replicas: 1
+envoy:
+  replicas: 1

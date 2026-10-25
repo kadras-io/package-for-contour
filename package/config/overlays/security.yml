@@ -1,0 +1,60 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
+
+#! The workloads comply with the "restricted" Pod Security Standard, enforced on the package namespace.
+#! Host ports are only allowed by the "privileged" one, so it's used when they're enabled.
+#! See: https://kubernetes.io/docs/concepts/security/pod-security-standards/
+
+#@ pod_security_level = "privileged" if data.values.envoy.host_ports.enabled else "restricted"
+
+#@overlay/match by=overlay.subset({"kind":"Namespace"})
+---
+metadata:
+  #@overlay/match missing_ok=True
+  labels:
+    #@overlay/match missing_ok=True
+    pod-security.kubernetes.io/enforce: #@ pod_security_level
+    #@overlay/match missing_ok=True
+    pod-security.kubernetes.io/audit: #@ pod_security_level
+    #@overlay/match missing_ok=True
+    pod-security.kubernetes.io/warn: #@ pod_security_level
+
+#@ def container_security_context():
+#@overlay/match missing_ok=True
+securityContext:
+  #@overlay/match missing_ok=True
+  allowPrivilegeEscalation: false
+  #@overlay/match missing_ok=True
+  capabilities:
+    #@overlay/match missing_ok=True
+    drop:
+    - ALL
+#@ end
+
+#@ contour = overlay.subset({"kind":"Deployment", "metadata":{"name":"contour"}})
+#@ envoy_daemonset = overlay.subset({"kind":"DaemonSet", "metadata":{"name":"envoy"}})
+#@ envoy_deployment = overlay.subset({"kind":"Deployment", "metadata":{"name":"envoy"}})
+#@ certgen = overlay.subset({"kind":"Job"})
+
+#@overlay/match by=overlay.or_op(contour, envoy_daemonset, envoy_deployment, certgen), expects="1+"
+---
+spec:
+  template:
+    spec:
+      #@overlay/match missing_ok=True
+      securityContext:
+        #@overlay/match missing_ok=True
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      #@overlay/match by=overlay.all, expects="1+"
+      - #@ container_security_context()
+
+#@overlay/match by=overlay.or_op(envoy_daemonset, envoy_deployment)
+---
+spec:
+  template:
+    spec:
+      initContainers:
+      #@overlay/match by=overlay.all, expects="1+"
+      - #@ container_security_context()

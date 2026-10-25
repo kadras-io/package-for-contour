@@ -1,0 +1,6 @@
+# expected: a valid DNS name
+---
+gateway:
+  domain: https://kadras.io
+  tls:
+    issuer: kadras-ca-issuer

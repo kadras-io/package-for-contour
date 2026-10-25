@@ -1,0 +1,4 @@
+# expected: `gateway.domain` and `gateway.tls.issuer` to be set together
+---
+gateway:
+  domain: kadras.io

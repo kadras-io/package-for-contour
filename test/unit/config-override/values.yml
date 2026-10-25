@@ -1,0 +1,8 @@
+---
+namespace: ingress
+contour:
+  replicas: 1
+  config:
+    tls:
+      minimum-protocol-version: "1.2"
+    disablePermitInsecure: true

@@ -1,0 +1,135 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
+#@ load("/lib/contour.star", "gateway_tls_enabled", "gateway_tls_secret_name")
+
+#! Contour is statically provisioned: it serves only the Gateway referenced in its configuration
+#! (`gateway.gatewayRef`), using the Envoy workload deployed by this package.
+#! See: https://projectcontour.io/docs/latest/config/gateway-api/#static-provisioning
+
+#@ gateway = data.values.gateway
+
+#! =============================================
+#! CRDs
+#! =============================================
+
+#@ if not gateway.install_crds:
+
+#@ def is_gateway_api_crd(_, left, __):
+#@   return left["kind"] == "CustomResourceDefinition" and left["spec"]["group"] in ["gateway.networking.k8s.io", "gateway.networking.x-k8s.io"]
+#@ end
+
+#@overlay/match by=is_gateway_api_crd, expects="1+"
+#@overlay/remove
+---
+
+#@ end
+
+#@ if gateway.enabled:
+
+#! =============================================
+#! GatewayClass and Gateway
+#! =============================================
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: contour
+spec:
+  controllerName: projectcontour.io/gateway-controller
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: #@ gateway.name
+  namespace: #@ data.values.namespace
+spec:
+  gatewayClassName: contour
+  listeners:
+  #! Serves HTTPRoutes, HTTPProxy, and Ingress resources over HTTP.
+  - name: http
+    protocol: HTTP
+    port: 80
+    allowedRoutes:
+      namespaces:
+        from: #@ gateway.allowed_routes
+  #! Serves HTTPProxy and Ingress resources over HTTPS, with the TLS settings defined on each of them.
+  - name: contour-https
+    protocol: projectcontour.io/https
+    port: 443
+    allowedRoutes:
+      namespaces:
+        from: #@ gateway.allowed_routes
+  #@ if gateway_tls_enabled():
+  #! Serves HTTPRoutes for the domain over HTTPS, with a wildcard certificate.
+  - name: https
+    protocol: HTTPS
+    port: 443
+    hostname: #@ "*." + gateway.domain
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: #@ gateway_tls_secret_name()
+    allowedRoutes:
+      namespaces:
+        from: #@ gateway.allowed_routes
+  #@ if gateway.tls.http_redirect:
+  #! Redirects HTTP requests for the domain to HTTPS. A listener with a hostname takes precedence
+  #! over the `http` one, and only the redirect route from the package namespace can attach to it.
+  - name: http-redirect
+    protocol: HTTP
+    port: 80
+    hostname: #@ "*." + gateway.domain
+    allowedRoutes:
+      namespaces:
+        from: Same
+  #@ end
+  #@ end
+
+#@ end
+
+#! =============================================
+#! TLS
+#! =============================================
+
+#@ if gateway_tls_enabled():
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: #@ gateway_tls_secret_name()
+  namespace: #@ data.values.namespace
+spec:
+  secretName: #@ gateway_tls_secret_name()
+  dnsNames:
+  - #@ "*." + gateway.domain
+  issuerRef:
+    name: #@ gateway.tls.issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+
+#@ if gateway.tls.http_redirect:
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: #@ gateway.name + "-https-redirect"
+  namespace: #@ data.values.namespace
+spec:
+  parentRefs:
+  - name: #@ gateway.name
+    sectionName: http-redirect
+  hostnames:
+  - #@ "*." + gateway.domain
+  rules:
+  - filters:
+    - type: RequestRedirect
+      requestRedirect:
+        scheme: https
+        statusCode: 301
+#@ end
+
+#@ end

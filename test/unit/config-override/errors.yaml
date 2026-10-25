@@ -1,0 +1,26 @@
+# Every namespaced resource is moved to the custom namespace.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: projectcontour
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: projectcontour
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: projectcontour
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  namespace: projectcontour
+---
+# A single Contour replica needs no PodDisruptionBudget.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: contour

@@ -2,5 +2,16 @@
 apiVersion: kuttl.dev/v1beta1
 kind: TestAssert
 commands:
+  # Ingress over HTTP.
   - script: |
-      curl --fail-with-body localhost:80
+      curl --fail-with-body -H "Host: ingress.kuard.local" localhost:80
+  # HTTPRoute over HTTPS, with the wildcard certificate (asserted as Ready in 00-assert.yaml).
+  # The certificate isn't verified, since the private CA uses an Ed25519 key, unsupported by LibreSSL on macOS.
+  - script: |
+      curl --fail-with-body --insecure \
+        --resolve kuard.127.0.0.1.sslip.io:443:127.0.0.1 https://kuard.127.0.0.1.sslip.io
+  # HTTP requests for the domain are redirected to HTTPS.
+  - script: |
+      response=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' -H 'Host: kuard.127.0.0.1.sslip.io' localhost:80)
+      echo "$response"
+      test "$response" = "301 https://kuard.127.0.0.1.sslip.io/"

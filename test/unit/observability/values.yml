@@ -1,0 +1,11 @@
+---
+observability:
+  logging:
+    level: debug
+    format: json
+  metrics:
+    enabled: false
+  tracing:
+    enabled: true
+    endpoint: otel-collector.observability:4317
+    sampling_rate: 0.25

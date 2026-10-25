@@ -1,0 +1,85 @@
+# Contour Certgen
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: projectcontour
+  annotations:
+    kapp.k14s.io/update-strategy: fallback-on-replace
+
+# Contour Deployment
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: contour
+  namespace: projectcontour
+spec:
+  replicas: 1
+status:
+  readyReplicas: 1
+
+# Envoy DaemonSet, from the local preset
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: envoy
+  namespace: projectcontour
+status:
+  numberReady: 1
+
+# Envoy Service, from the local preset
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: envoy
+  namespace: projectcontour
+spec:
+  type: ClusterIP
+
+# Gateway API (in static mode, Contour sets the status of the Gateway, not of the GatewayClass)
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: contour
+  namespace: projectcontour
+spec:
+  gatewayClassName: contour
+
+# IngressClass
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: contour
+  annotations:
+    ingressclass.kubernetes.io/is-default-class: "true"
+spec:
+  controller: projectcontour.io/contour
+
+# Image Pull Secret
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: canonical-registry-credentials
+  namespace: projectcontour
+  annotations:
+    secretgen.carvel.dev/image-pull-secret: ""
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: e30K
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: contour
+  namespace: projectcontour
+spec:
+  template:
+    spec:
+      imagePullSecrets:
+        - name: canonical-registry-credentials

@@ -1,0 +1,120 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
+#@ load("/lib/contour.star", "certgen_lifetime_days", "is_cert_manager")
+
+#! The certificates securing the gRPC connection between Contour and Envoy (xDS).
+#! Contour presents the `contourcert` certificate and Envoy the `envoycert` one, both signed by the same CA.
+
+#@ internal = data.values.tls.internal
+
+#@ def dns_names(name):
+#@   return [
+#@     name,
+#@     name + "." + data.values.namespace,
+#@     name + "." + data.values.namespace + ".svc",
+#@     name + "." + data.values.namespace + ".svc.cluster.local",
+#@   ]
+#@ end
+
+#@ if is_cert_manager():
+
+#@ certgen_sa = overlay.subset({"kind":"ServiceAccount", "metadata":{"name":"contour-certgen"}})
+#@ certgen_rb = overlay.subset({"kind":"RoleBinding", "roleRef":{"name":"contour-certgen"}})
+#@ certgen_role = overlay.subset({"kind":"Role", "metadata":{"name":"contour-certgen"}})
+#@ certgen_job = overlay.subset({"kind":"Job"})
+
+#@overlay/match by=overlay.or_op(certgen_sa, certgen_rb, certgen_role, certgen_job), expects=4
+#@overlay/remove
+---
+
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: contour-bootstrap-issuer
+  namespace: #@ data.values.namespace
+spec:
+  selfSigned: {}
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: contour-root-ca
+  namespace: #@ data.values.namespace
+spec:
+  isCA: true
+  commonName: Contour CA
+  secretName: contour-root-ca
+  duration: #@ internal.duration
+  renewBefore: #@ internal.renew_before
+  subject:
+    organizations:
+    - Project Contour
+  privateKey:
+    algorithm: Ed25519
+    encoding: PKCS8
+  issuerRef:
+    name: contour-bootstrap-issuer
+    kind: Issuer
+    group: cert-manager.io
+
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: contour-ca-issuer
+  namespace: #@ data.values.namespace
+spec:
+  ca:
+    secretName: contour-root-ca
+
+#@ for name, usage in [("contour", "server auth"), ("envoy", "client auth")]:
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: #@ name + "-cert"
+  namespace: #@ data.values.namespace
+spec:
+  secretName: #@ name + "cert"
+  duration: #@ internal.duration
+  renewBefore: #@ internal.renew_before
+  subject:
+    organizations:
+    - Project Contour
+  commonName: #@ name
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 4096
+  usages:
+  - #@ usage
+  dnsNames: #@ dns_names(name)
+  issuerRef:
+    name: contour-ca-issuer
+    kind: Issuer
+    group: cert-manager.io
+#@ end
+
+#@ else:
+
+#! The Job name includes the Contour version, so it runs again at every upgrade.
+#@overlay/match by=overlay.subset({"kind":"Job"})
+---
+metadata:
+  #@overlay/match missing_ok=True
+  annotations:
+    #@overlay/match missing_ok=True
+    kapp.k14s.io/update-strategy: "fallback-on-replace"
+spec:
+  template:
+    spec:
+      containers:
+      #@overlay/match by="name"
+      - name: contour
+        command:
+        #@overlay/append
+        - #@ "--certificate-lifetime=" + str(certgen_lifetime_days())
+
+#@ end

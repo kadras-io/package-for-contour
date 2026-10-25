@@ -1,0 +1,7 @@
+---
+gateway:
+  name: platform
+  allowed_routes: Same
+  domain: kadras.io
+  tls:
+    issuer: kadras-ca-issuer

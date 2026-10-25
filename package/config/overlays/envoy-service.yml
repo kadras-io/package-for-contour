@@ -1,33 +1,36 @@
 #@ load("@ytt:data", "data")
 #@ load("@ytt:overlay", "overlay")
 
-#@ node_ports_enabled = data.values.envoy.service.type == "NodePort" or data.values.envoy.service.type == "LoadBalancer"
+#@ service = data.values.envoy.service
+#@ external = service.type in ["LoadBalancer", "NodePort"]
 
 #@overlay/match by=overlay.subset({"kind":"Service", "metadata":{"name":"envoy"}})
 ---
 metadata:
+  #! Replaces the upstream annotations, which are specific to AWS.
   #@overlay/replace
-  annotations: #@ data.values.envoy.service.annotations
+  annotations: #@ service.annotations
 spec:
-  type: #@ data.values.envoy.service.type
+  type: #@ service.type
 
   ports:
   #@overlay/match by=overlay.subset({"name":"http"})
   -
-    #@ if/end node_ports_enabled and data.values.envoy.service.nodePorts.http:
+    #@ if/end external and service.node_ports.http:
     #@overlay/match missing_ok=True
-    nodePort: #@ data.values.envoy.service.nodePorts.http
+    nodePort: #@ service.node_ports.http
     targetPort: http
   #@overlay/match by=overlay.subset({"name":"https"})
   -
-    #@ if/end node_ports_enabled and data.values.envoy.service.nodePorts.https:
+    #@ if/end external and service.node_ports.https:
     #@overlay/match missing_ok=True
-    nodePort: #@ data.values.envoy.service.nodePorts.https
+    nodePort: #@ service.node_ports.https
     targetPort: https
 
-  #@ if/end data.values.envoy.service.loadBalancerIP and data.values.envoy.service.type == "LoadBalancer":
-  #@overlay/match missing_ok=True
-  loadBalancerIP: #@ data.values.envoy.service.loadBalancerIP
-
-  #@overlay/match missing_ok=True
-  externalTrafficPolicy: #@ data.values.envoy.service.externalTrafficPolicy
+  #! Kubernetes rejects an external traffic policy on ClusterIP Services.
+  #@ if external:
+  externalTrafficPolicy: #@ service.external_traffic_policy
+  #@ else:
+  #@overlay/remove
+  externalTrafficPolicy:
+  #@ end
