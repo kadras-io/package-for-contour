@@ -58,3 +58,58 @@ spec:
       initContainers:
       #@overlay/match by=overlay.all, expects="1+"
       - #@ container_security_context()
+
+#! Contour and the certgen Job need to access the Kubernetes API. Instead of auto-mounting
+#! the service account token in every container, the token is mounted explicitly only where it's needed,
+#! with the same projected volume Kubernetes would otherwise add.
+#! Envoy doesn't access the Kubernetes API and doesn't mount the token at all (set upstream).
+#! See: https://kyverno.io/policies/other/restrict-automount-sa-token/restrict-automount-sa-token/
+
+#@ kube_api_access = "kube-api-access"
+
+#@ def kube_api_access_volume():
+#@overlay/match missing_ok=True
+automountServiceAccountToken: false
+#@overlay/match missing_ok=True
+volumes:
+#@overlay/append
+- name: #@ kube_api_access
+  projected:
+    defaultMode: 420
+    sources:
+    - serviceAccountToken:
+        path: token
+        expirationSeconds: 3607
+    - configMap:
+        name: kube-root-ca.crt
+        items:
+        - key: ca.crt
+          path: ca.crt
+    - downwardAPI:
+        items:
+        - path: namespace
+          fieldRef:
+            apiVersion: v1
+            fieldPath: metadata.namespace
+containers:
+#@overlay/match by=overlay.all, expects="1+"
+-
+  #@overlay/match missing_ok=True
+  volumeMounts:
+  #@overlay/append
+  - name: #@ kube_api_access
+    mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+    readOnly: true
+#@ end
+
+#@overlay/match by=contour
+---
+spec:
+  template:
+    spec: #@ kube_api_access_volume()
+
+#@overlay/match by=certgen, expects="0+"
+---
+spec:
+  template:
+    spec: #@ kube_api_access_volume()

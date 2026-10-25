@@ -185,3 +185,38 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       (containers[*].securityContext.capabilities.drop): [[ALL]]
+---
+# The service account token is only mounted explicitly, where the Kubernetes API is accessed.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: contour
+  namespace: projectcontour
+spec:
+  template:
+    spec:
+      automountServiceAccountToken: false
+      (volumes[?name == 'kube-api-access'] | [0].projected.sources[*].keys(@)[0]): [serviceAccountToken, configMap, downwardAPI]
+      (containers[?name == 'contour'] | [0].volumeMounts[?name == 'kube-api-access'] | [0]):
+        mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        readOnly: true
+---
+apiVersion: batch/v1
+kind: Job
+spec:
+  template:
+    spec:
+      automountServiceAccountToken: false
+      (containers[0].volumeMounts[?name == 'kube-api-access'] | [0]):
+        mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: envoy
+  namespace: projectcontour
+spec:
+  template:
+    spec:
+      automountServiceAccountToken: false
+      (length(volumes[?name == 'kube-api-access'])): 0
